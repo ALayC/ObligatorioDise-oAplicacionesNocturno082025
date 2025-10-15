@@ -78,7 +78,7 @@ function submit(endPointUrl, urlEncodedData) {
             }
              
         } catch (e) {
-            console.error("Error procesar la respuesta:", e);
+            console.error("Error procesar la respuesta: " + text, e);
         }   
         
     }).catch(error => {

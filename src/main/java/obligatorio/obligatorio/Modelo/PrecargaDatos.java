@@ -16,9 +16,9 @@ public final class PrecargaDatos {
     private final List<Estado> estados = new ArrayList<>();
     private final List<AsignacionBonificacion> asignaciones = new ArrayList<>();
 
-    public static PrecargaDatos crear() {
+    public static PrecargaDatos crear() throws ObligatorioException {
         PrecargaDatos d = new PrecargaDatos();
-        d.cargar();
+        d.cargar();   
         return d;
     }
 
@@ -32,7 +32,9 @@ public final class PrecargaDatos {
     public List<Estado> getEstados() { return estados; }
     public List<AsignacionBonificacion> getAsignaciones() { return asignaciones; }
 
-    private void cargar() {
+    private void cargar() throws ObligatorioException {
+        Fachada f = Fachada.getInstancia();
+
         Estado habilitado = new Estado("Habilitado");
         Estado deshabilitado = new Estado("Deshabilitado");
         Estado suspendido = new Estado("Suspendido");
@@ -47,10 +49,19 @@ public final class PrecargaDatos {
         administradores.add(admin1);
         administradores.add(admin2);
 
-        Propietario prop1 = new Propietario("23456789", "prop.123", "Usuario Propietario", new BigDecimal("2000"), new BigDecimal("500"), habilitado);
-        Propietario prop2 = new Propietario("34567890", "prop.456", "Propietario Dos", new BigDecimal("800"), new BigDecimal("200"), habilitado);
+
+        Propietario prop1 = new Propietario("1", "1", "Usuario Propietario",
+                new BigDecimal("2000"), new BigDecimal("500"), habilitado);
+        Propietario prop2 = new Propietario("34567890", "prop.456", "Propietario Dos",
+                new BigDecimal("800"), new BigDecimal("200"), habilitado);
         propietarios.add(prop1);
         propietarios.add(prop2);
+
+
+        f.agregarPropietario(prop1.getCedula(), prop1.getPassword(), prop1.getNombreCompleto(),
+                prop1.getSaldoActual(), prop1.getSaldoMinimoAlerta(), prop1.getEstadoActual());
+        f.agregarPropietario(prop2.getCedula(), prop2.getPassword(), prop2.getNombreCompleto(),
+                prop2.getSaldoActual(), prop2.getSaldoMinimoAlerta(), prop2.getEstadoActual());
 
         Categoria auto = new Categoria("Automóvil");
         Categoria camion = new Categoria("Camión");
