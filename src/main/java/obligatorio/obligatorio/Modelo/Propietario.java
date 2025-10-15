@@ -49,8 +49,11 @@ public final class Propietario {
     @Override public boolean equals(Object o){return o instanceof Propietario p && cedula.equals(p.cedula);}
     @Override public int hashCode(){return Objects.hash(cedula);}
 
-    public boolean login(String cedula, String pwd) {
-    return getCedula().equals(cedula) && getPassword().equals(pwd);
-}
+    public int cantidadNotificaciones() {
+        return notificaciones.size();
+    }
 
+    public void limpiarNotificaciones() {
+        notificaciones.clear();
+    }
 }

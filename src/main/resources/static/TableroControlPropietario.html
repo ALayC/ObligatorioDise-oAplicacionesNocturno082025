@@ -1,11 +1,288 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tablero de control del propietario</title>
+
+  <!-- Tus estilos -->
+  <link rel="stylesheet" href="Estilos.css">
+
+<!-- 1) vistaWeb primero, sin defer -->
+<script src="/vistaWeb.js"></script>
+
+<!-- 2) ahora seteo los globals que la librería leerá en DOMContentLoaded -->
+<script>
+  window.urlIniciarVista = "/propietario/tablero";
+  window.parametrosInicioVista = "";
+  window.urlCierreVista = null;
+  window.parametrosCierreVista = "";
+
+  // Redirigir a login si el backend responde 400 (sin sesión)
+  window.procesarErrorSubmit = function (status, text) {
+    if (status === 400) {
+      window.location.href = "login.html";
+      return;
+    }
+    console.error("Error en submit:", status, text);
+    alert("Se produjo un error");
+  };
+</script>
+
+<!-- 3) utilesVista con defer (se ejecuta después de parsear el body) -->
+<script defer src="/utilesVista.js"></script>
+
+
+  <style>
+    /* Estilos mínimos por si tu Estilos.css no los cubre aún */
+    .wrap { max-width: 1100px; margin: 16px auto; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 14px; }
+    .card h3 { margin: 0 0 8px 0; font-size: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .pill { background: #f6f7fb; border: 1px solid #e5e7f0; border-radius: 10px; padding: 10px; }
+    .k { font-size: .78rem; color: #666; display:block; }
+    .v { font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { text-align: left; background: #f6f7fb; font-weight: 600; border-bottom: 1px solid #e5e7f0; padding: 8px; }
+    tbody td { border-bottom: 1px solid #f0f1f6; padding: 8px; }
+    .toolbar { display:flex; justify-content:flex-end; margin-top:8px; }
+    .btn { background:#e83e8c; color:#fff; border:0; border-radius:8px; padding:8px 12px; cursor:pointer; }
+    .btn:disabled { opacity:.5; cursor:default; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .topbar a { color:#888; text-decoration:none; }
+    @media (max-width: 900px) { .row { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-    "aaa"
+<div class="wrap">
+  <div class="topbar">
+    <h2>Tablero de control del propietario</h2>
+    <a href="login.html">Salir</a>
+  </div>
+
+  <!-- Resumen -->
+  <div class="card">
+    <h3>Resumen del propietario</h3>
+    <div class="grid-3">
+      <div class="pill">
+        <span class="k">NOMBRE COMPLETO</span>
+        <span id="cabeceraNombre" class="v">—</span>
+      </div>
+      <div class="pill">
+        <span class="k">ESTADO</span>
+        <span id="cabeceraEstado" class="v">—</span>
+      </div>
+      <div class="pill">
+        <span class="k">SALDO ACTUAL</span>
+        <span id="cabeceraSaldo" class="v">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Bonificaciones -->
+    <div class="card">
+      <h3>Bonificaciones asignadas</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+          <tr>
+            <th>Bonificación</th>
+            <th>Puesto</th>
+            <th>Fecha asignada</th>
+          </tr>
+          </thead>
+          <tbody id="tbodyBonificaciones">
+          <tr><td colspan="3">Sin bonificaciones</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Vehículos -->
+    <div class="card">
+      <h3>Vehículos registrados</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+          <tr>
+            <th>Matrícula</th>
+            <th>Modelo</th>
+            <th>Color</th>
+            <th>Tránsitos</th>
+            <th>Monto total</th>
+          </tr>
+          </thead>
+          <tbody id="tbodyVehiculos">
+          <tr><td colspan="5">Sin vehículos</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tránsitos -->
+  <div class="card">
+    <h3>Tránsitos realizados</h3>
+    <div class="tableWrap">
+      <table>
+        <thead>
+        <tr>
+          <th>Puesto</th>
+          <th>Matrícula</th>
+          <th>Tarifa</th>
+          <th>Monto tarifa</th>
+          <th>Bonificación</th>
+          <th>Monto bonificación</th>
+          <th>Monto pagado</th>
+          <th>Fecha</th>
+          <th>Hora</th>
+        </tr>
+        </thead>
+        <tbody id="tbodyTransitos">
+        <tr><td colspan="9">Sin tránsitos</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Notificaciones -->
+  <div class="card">
+    <div class="topbar" style="margin-bottom:0">
+      <h3>Notificaciones del sistema</h3>
+      <div class="toolbar">
+        <button id="btnBorrarNotifs" class="btn" onclick="borrarNotificaciones()">Borrar notificaciones</button>
+      </div>
+    </div>
+    <div class="tableWrap">
+      <table>
+        <thead>
+        <tr>
+          <th>Fecha y hora</th>
+          <th>Mensaje</th>
+        </tr>
+        </thead>
+        <tbody id="tbodyNotificaciones">
+        <tr><td colspan="2">Sin notificaciones</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== Helpers =====
+  function fmtMoneda(v) {
+    if (v === null || v === undefined) return "—";
+    try { return new Intl.NumberFormat('es-UY', {style:'currency', currency:'UYU'}).format(v); }
+    catch(_) { return "$ " + v; }
+  }
+  function fmtFecha(iso) { return iso ? iso : "—"; }
+  function fmtHora(iso)  { return iso ? iso : "—"; }
+
+  // ===== Handlers que exige el backend (ids de Respuesta) =====
+  function mostrar_cabecera(dto) {
+    document.getElementById('cabeceraNombre').textContent = dto.propietarioNombreCompleto || "—";
+    document.getElementById('cabeceraEstado').textContent = dto.estado || "—";
+    document.getElementById('cabeceraSaldo').textContent  = fmtMoneda(dto.saldoActual);
+  }
+
+  function mostrar_bonificaciones(lista) {
+    const tbody = document.getElementById('tbodyBonificaciones');
+    tbody.innerHTML = "";
+    if (!lista || lista.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="3">Sin bonificaciones</td></tr>`;
+      return;
+    }
+    for (const b of lista) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${b.bonificacion}</td>
+        <td>${b.puesto}</td>
+        <td>${fmtFecha(b.fechaAsignada)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function mostrar_vehiculos(lista) {
+    const tbody = document.getElementById('tbodyVehiculos');
+    tbody.innerHTML = "";
+    if (!lista || lista.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5">Sin vehículos</td></tr>`;
+      return;
+    }
+    for (const v of lista) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${v.matricula}</td>
+        <td>${v.modelo}</td>
+        <td>${v.color}</td>
+        <td>${v.cantidadTransitos ?? 0}</td>
+        <td>${fmtMoneda(v.montoTotalGastado ?? 0)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function mostrar_transitos(lista) {
+    const tbody = document.getElementById('tbodyTransitos');
+    tbody.innerHTML = "";
+    if (!lista || lista.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9">Sin tránsitos</td></tr>`;
+      return;
+    }
+    for (const t of lista) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${t.puesto}</td>
+        <td>${t.matricula}</td>
+        <td>${t.nombreTarifa}</td>
+        <td>${fmtMoneda(t.montoTarifa)}</td>
+        <td>${t.bonificacion ?? "—"}</td>
+        <td>${fmtMoneda(t.montoBonificacion ?? 0)}</td>
+        <td>${fmtMoneda(t.montoPagado)}</td>
+        <td>${fmtFecha(t.fecha)}</td>
+        <td>${fmtHora(t.hora)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function mostrar_notificaciones(lista) {
+    const tbody = document.getElementById('tbodyNotificaciones');
+    tbody.innerHTML = "";
+    if (!lista || lista.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="2">Sin notificaciones</td></tr>`;
+      return;
+    }
+    for (const n of lista) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${n.fechaHora ?? "—"}</td>
+        <td>${n.mensaje}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // Feedback luego del borrado
+  function mostrar_notificacionesBorradas(cantidad) {
+    document.getElementById('tbodyNotificaciones').innerHTML =
+      `<tr><td colspan="2">Sin notificaciones</td></tr>`;
+    alert(`Se borraron ${cantidad} notificación(es).`);
+  }
+
+  // Botón "Borrar notificaciones"
+  function borrarNotificaciones() {
+    submit("/propietario/notificaciones/borrar", "");
+  }
+
+  // Mensajes de negocio (status 299) desde el backend
+  async function excepcionDeAplicacion(texto) {
+    alert(texto);
+  }
+</script>
 </body>
 </html>
