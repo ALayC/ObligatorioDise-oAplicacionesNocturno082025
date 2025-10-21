@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
         submit(urlIniciarVista, parametrosInicioVista);
     }
 
-//Cuando se baja la pagina le avisa al controlador que la vista no está activa
+    //Cuando se baja la pagina le avisa al controlador que la vista no está activa
     if (urlCierreVista !== null) {
         window.addEventListener("beforeunload", function () {
             navigator.sendBeacon(urlCierreVista, parametrosCierreVista);
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
     //Quitar este metodo, ya no es necesario...revisar antes 
     try {
         ejecutarCodigoDocumentReady();
-    } catch (e) {}
+    } catch (e) { }
 });
 
 // Ejecuta un endpoint usando fetch y envía datos en formato URL Encoded
@@ -40,8 +40,8 @@ function submit(endPointUrl, urlEncodedData) {
         const status = response.status;
         const text = await response.text();
         //Si el servidor responede con error
-        if(status<200 || status >299){
-            manejarError(status,text,endPointUrl,urlEncodedData);
+        if (status < 200 || status > 299) {
+            manejarError(status, text, endPointUrl, urlEncodedData);
             return;
         }
         //se ejecuta luego de finalizado el primer submit de la pagia
@@ -50,66 +50,66 @@ function submit(endPointUrl, urlEncodedData) {
         if (!isPrimerSubmitFinalizado) {
             isPrimerSubmitFinalizado = true;
             try {
-               primerSubmitFinalizado();
-            } catch (e) {}
+                primerSubmitFinalizado();
+            } catch (e) { }
         }
         //si se produce una Excepcion de aplicacion se asume que el servidor responde con status 299
         if (status === 299) {
             try {
                 excepcionDeAplicacion(text);//Metodo que puede estar definido en la pagina que incluya esta lib 
-                                            //para personalizar el manejo del error de aplicacion   
+                //para personalizar el manejo del error de aplicacion   
             } catch (e) {
                 alert(text); //Por defecto...
             }
             return;
-        } 
+        }
         try {
             const json = JSON.parse(text);
             if (Array.isArray(json)) {
-                 //si llega una coleccion de respuestas 
-                  procesarResultadosSubmit(json);
-            }else{
-                try{
-                   //si llega otro tipo de respuesta 
-                  procesarRespuestaSubmit(text);
+                //si llega una coleccion de respuestas 
+                procesarResultadosSubmit(json);
+            } else {
+                try {
+                    //si llega otro tipo de respuesta 
+                    procesarRespuestaSubmit(text);
                 } catch (e) {
-                    console.error("No se encontro la funcion procesarRespuestaSubmit para la respuesta:",text);
+                    console.error("No se encontro la funcion procesarRespuestaSubmit para la respuesta:", text);
                 }
             }
-             
+
         } catch (e) {
             console.error("Error procesar la respuesta: " + text, e);
-        }   
-        
+        }
+
     }).catch(error => {
         //Si no se puede hacer el fetch
-        manejarError(0,error.message,endPointUrl,urlEncodedData);
-      
+        manejarError(0, error.message, endPointUrl, urlEncodedData);
     });
 }
-function manejarError(status, text, url, data){
-     try {
-         //Definir para personalizar el manejo de errores en las paginas
-         procesarErrorSubmit(status,text);
-     } catch (e) {
-                console.error("url:" + url + "  data: " + data);
-                console.error("Error en submit:" + status, text);
-                document.body.innerHTML = '';
-                alert("Se produjo un error, detalles en consola");
-     }
+
+function manejarError(status, text, url, data) {
+    try {
+        //definir para personalizar el manejo de errores en las paginas
+        procesarErrorSubmit(status, text);
+    } catch (e) {
+        console.error("url:" + url + "  data: " + data);
+        console.error("Error en submit:" + status, text);
+        document.body.innerHTML = '';
+        alert("Se produjo un error, detalles en consola");
+    }
 }
 
-// Por cada respuesta llama a la función "mostrar_" correspondiente
+//por cada respuesta llama a la función "mostrar_" correspondiente
 //cambiando el valor de prefijoNombreFuncionProcesoResultado se puede personalizar el nombre 
 //del prefijo de las funciones que procesan las respuestas del controlador
 function procesarResultadosSubmit(listaRespuestas) {
     listaRespuestas.forEach(respuesta => {
         let nombreFuncion = prefijoNombreFuncionProcesoResultado + respuesta.id;
-        
+
         if (typeof window[nombreFuncion] === 'function') {
-            try{
+            try {
                 window[nombreFuncion](respuesta.parametro);
-            }catch(e){
+            } catch (e) {
                 console.error("Error en la funcion " + nombreFuncion + " : ", e);
             }
         } else {
@@ -117,3 +117,20 @@ function procesarResultadosSubmit(listaRespuestas) {
         }
     });
 }
+
+function serializarFormulario(formId) {
+    const form = document.getElementById(formId);
+    if (!form) {
+        console.error("No se encontró el formulario con id:", formId);
+        return "";
+    }
+
+    return new URLSearchParams(new FormData(form)).toString();
+}
+
+function handleRecarga(e) {
+    e.preventDefault();
+    submit("/propietario/recargarSaldo", serializarFormulario("formRecarga"));
+}
+
+window.handleRecarga = handleRecarga;

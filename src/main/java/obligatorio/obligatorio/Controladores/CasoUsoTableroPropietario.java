@@ -2,6 +2,8 @@ package obligatorio.obligatorio.Controladores;
 
 import java.util.List;
 
+import java.math.BigDecimal;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +37,27 @@ public class CasoUsoTableroPropietario {
         }
         int cant = Fachada.getInstancia().borrarNotificaciones(p);
         if (cant == 0) {
-            // mensaje de negocio (si querés mantener 299 para mostrar alerta)
+            // mensaje de negocio
             HttpHeaders h = new HttpHeaders();
             h.add(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8");
             return new ResponseEntity<>("No hay notificaciones para borrar", h, HttpStatusCode.valueOf(299));
         }
         return Respuesta.lista(
-            new Respuesta("notificacionesBorradas", cant),
-            new Respuesta("notificaciones", List.of())
-        );
+                new Respuesta("notificacionesBorradas", cant),
+                new Respuesta("notificaciones", List.of()));
+    }
+
+    @PostMapping("/recargarSaldo")
+    public Object recargarSaldo(
+            @SessionAttribute(name = "propietario", required = false) Propietario p,
+            @RequestParam BigDecimal monto) throws ObligatorioException {
+
+        if (p == null) {
+            return ResponseEntity.badRequest().body("Sesión expirada o no iniciada");
+        }
+
+        Fachada.getInstancia().recargarSaldo(p, monto);
+
+        return Fachada.getInstancia().armarRespuestasTablero(p);
     }
 }

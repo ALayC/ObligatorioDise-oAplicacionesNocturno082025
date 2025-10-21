@@ -18,16 +18,15 @@ final class SistemaTablero {
         CabeceraPropietarioDTO cabecera = construirCabecera(p);
         List<BonificacionAsignadaDTO> bonis = construirBonificaciones(p);
         List<VehiculoResumenDTO> vehs = construirVehiculos(p);
-        List<TransitoDTO> trans = construirTransitos(p);   // hoy vacío si no hay sistema de tránsitos
+        List<TransitoDTO> trans = construirTransitos(p); // hoy vacío si no hay sistema de tránsitos
         List<NotificacionDTO> notifs = construirNotificaciones(p);
 
         return Respuesta.lista(
-                new Respuesta("cabecera",       cabecera),
+                new Respuesta("cabecera", cabecera),
                 new Respuesta("bonificaciones", bonis),
-                new Respuesta("vehiculos",      vehs),
-                new Respuesta("transitos",      trans),
-                new Respuesta("notificaciones", notifs)
-        );
+                new Respuesta("vehiculos", vehs),
+                new Respuesta("transitos", trans),
+                new Respuesta("notificaciones", notifs));
     }
 
     int borrarNotificaciones(Propietario p) {
@@ -45,8 +44,7 @@ final class SistemaTablero {
         return new CabeceraPropietarioDTO(
                 p.getNombreCompleto(),
                 estado,
-                p.getSaldoActual()
-        );
+                p.getSaldoActual());
     }
 
     private List<BonificacionAsignadaDTO> construirBonificaciones(Propietario p) {
@@ -54,31 +52,54 @@ final class SistemaTablero {
                 .map(a -> new BonificacionAsignadaDTO(
                         a.getBonificacion().getNombre(),
                         a.getPuesto().getNombre(),
-                        a.getFechaAsignacion()
-                ))
+                        a.getFechaAsignacion()))
                 .sorted(Comparator.comparing(b -> b.fechaAsignada)) // asc; usar .reversed() si querés desc
                 .collect(Collectors.toList());
     }
 
     private List<VehiculoResumenDTO> construirVehiculos(Propietario p) {
-        // Por ahora sin sistema de tránsitos: contadores/montos en 0
+        var transitosProp = Fachada.getInstancia().getTransitos();
         return p.getVehiculos().stream()
-                .map(v -> new VehiculoResumenDTO(
-                        v.getMatricula(),
-                        v.getModelo(),
-                        v.getColor(),
-                        0,                      // TODO: cantidad de tránsitos del vehículo
-                        BigDecimal.ZERO         // TODO: monto total gastado
-                ))
+                .map(v -> {
+                    var transV = transitosProp.stream()
+                            .filter(t -> t.getVehiculo().getMatricula().equalsIgnoreCase(v.getMatricula()))
+                            .toList();
+
+                    int cant = transV.size();
+                    BigDecimal total = transV.stream()
+                            .map(Transito::getMontoCobrado)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    return new VehiculoResumenDTO(
+                            v.getMatricula(),
+                            v.getModelo(),
+                            v.getColor(),
+                            cant,
+                            total);
+                })
                 .collect(Collectors.toList());
     }
 
     private List<TransitoDTO> construirTransitos(Propietario p) {
-        // TODO cuando tengas un SistemaTransito:
-        //  - recuperar tránsitos del propietario,
-        //  - ordenar por fecha/hora desc,
-        //  - mapear a TransitoDTO.
-        return List.of();
+        var matriculasProp = p.getVehiculos().stream()
+                .map(Vehiculo::getMatricula)
+                .collect(Collectors.toSet());
+
+        return Fachada.getInstancia().getTransitos().stream()
+                .filter(t -> matriculasProp.contains(t.getVehiculo().getMatricula()))
+                .sorted(Comparator.comparing(Transito::getFechaHora).reversed())
+                .map(t -> new TransitoDTO(
+                        t.getPuesto().getNombre(),
+                        t.getVehiculo().getMatricula(),
+                        t.getTarifaAplicada().getCategoria().getNombre(),
+                        t.getMontoBase(),
+                        t.getBonificacionAplicada() != null ? t.getBonificacionAplicada().getNombre() : null,
+                        t.getBonificacionAplicada() != null ? t.getMontoBase().subtract(t.getMontoCobrado())
+                                : BigDecimal.ZERO,
+                        t.getMontoCobrado(),
+                        t.getFechaHora().toLocalDate(),
+                        t.getFechaHora().toLocalTime()))
+                .collect(Collectors.toList());
     }
 
     private List<NotificacionDTO> construirNotificaciones(Propietario p) {
