@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +10,7 @@
   <!-- 1) vistaWeb primero (define submit(), etc.) -->
   <script src="vistaWeb.js"></script>
 
-  <!-- 2) variables para que al cargar llame /propietario/tablero -->
+  <!-- 2) Config para iniciar la vista llamando al backend -->
   <script>
     window.urlIniciarVista = "/propietario/tablero";
     window.parametrosInicioVista = "";
@@ -29,114 +28,29 @@
     };
   </script>
 
-  <!-- 3) utilidades (si las usás) -->
+  <!-- 3) utilidades. Dejalo después para asegurar la versión correcta de serializarFormulario -->
   <script defer src="utilesVista.js"></script>
 
   <style>
-    .wrap {
-      max-width: 1100px;
-      margin: 16px auto;
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
-      padding: 14px;
-    }
-
-    .card h3 {
-      margin: 0 0 8px 0;
-      font-size: 1rem;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    .pill {
-      background: #f6f7fb;
-      border: 1px solid #e5e7f0;
-      border-radius: 10px;
-      padding: 10px;
-    }
-
-    .k {
-      font-size: .78rem;
-      color: #666;
-      display: block;
-    }
-
-    .v {
-      font-weight: 600;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead th {
-      text-align: left;
-      background: #f6f7fb;
-      font-weight: 600;
-      border-bottom: 1px solid #e5e7f0;
-      padding: 8px;
-    }
-
-    tbody td {
-      border-bottom: 1px solid #f0f1f6;
-      padding: 8px;
-    }
-
-    .toolbar {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 8px;
-    }
-
-    .btn {
-      background: #e83e8c;
-      color: #fff;
-      border: 0;
-      border-radius: 8px;
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-
-    .btn:disabled {
-      opacity: .5;
-      cursor: default;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .topbar a {
-      color: #888;
-      text-decoration: none;
-    }
-
+    .wrap { max-width: 1100px; margin: 16px auto; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 14px; }
+    .card h3 { margin: 0 0 8px 0; font-size: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .pill { background: #f6f7fb; border: 1px solid #e5e7f0; border-radius: 10px; padding: 10px; }
+    .k { font-size: .78rem; color: #666; display: block; }
+    .v { font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { text-align: left; background: #f6f7fb; font-weight: 600; border-bottom: 1px solid #e5e7f0; padding: 8px; }
+    tbody td { border-bottom: 1px solid #f0f1f6; padding: 8px; }
+    .toolbar { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .btn { background: #e83e8c; color: #fff; border: 0; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .topbar a { color: #888; text-decoration: none; }
     @media (max-width: 900px) {
-      .row {
-        grid-template-columns: 1fr;
-      }
-
-      .grid-3 {
-        grid-template-columns: 1fr;
-      }
+      .row { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -164,16 +78,10 @@
         <h3>Bonificaciones asignadas</h3>
         <table>
           <thead>
-            <tr>
-              <th>Bonificación</th>
-              <th>Puesto</th>
-              <th>Fecha asignada</th>
-            </tr>
+            <tr><th>Bonificación</th><th>Puesto</th><th>Fecha asignada</th></tr>
           </thead>
           <tbody id="tbodyBonificaciones">
-            <tr>
-              <td colspan="3">Sin bonificaciones</td>
-            </tr>
+            <tr><td colspan="3">Sin bonificaciones</td></tr>
           </tbody>
         </table>
       </div>
@@ -183,18 +91,10 @@
         <h3>Vehículos registrados</h3>
         <table>
           <thead>
-            <tr>
-              <th>Matrícula</th>
-              <th>Modelo</th>
-              <th>Color</th>
-              <th>Tránsitos</th>
-              <th>Monto total</th>
-            </tr>
+            <tr><th>Matrícula</th><th>Modelo</th><th>Color</th><th>Tránsitos</th><th>Monto total</th></tr>
           </thead>
           <tbody id="tbodyVehiculos">
-            <tr>
-              <td colspan="5">Sin vehículos</td>
-            </tr>
+            <tr><td colspan="5">Sin vehículos</td></tr>
           </tbody>
         </table>
       </div>
@@ -206,21 +106,12 @@
       <table>
         <thead>
           <tr>
-            <th>Puesto</th>
-            <th>Matrícula</th>
-            <th>Tarifa</th>
-            <th>Monto tarifa</th>
-            <th>Bonificación</th>
-            <th>Monto bonificación</th>
-            <th>Monto pagado</th>
-            <th>Fecha</th>
-            <th>Hora</th>
+            <th>Puesto</th><th>Matrícula</th><th>Tarifa</th><th>Monto tarifa</th>
+            <th>Bonificación</th><th>Monto bonificación</th><th>Monto pagado</th><th>Fecha</th><th>Hora</th>
           </tr>
         </thead>
         <tbody id="tbodyTransitos">
-          <tr>
-            <td colspan="9">Sin tránsitos</td>
-          </tr>
+          <tr><td colspan="9">Sin tránsitos</td></tr>
         </tbody>
       </table>
     </div>
@@ -235,15 +126,10 @@
       </div>
       <table>
         <thead>
-          <tr>
-            <th>Fecha y hora</th>
-            <th>Mensaje</th>
-          </tr>
+          <tr><th>Fecha y hora</th><th>Mensaje</th></tr>
         </thead>
         <tbody id="tbodyNotificaciones">
-          <tr>
-            <td colspan="2">Sin notificaciones</td>
-          </tr>
+          <tr><td colspan="2">Sin notificaciones</td></tr>
         </tbody>
       </table>
     </div>
@@ -323,14 +209,15 @@
     // acciones
     function borrarNotificaciones() { submit("/propietario/notificaciones/borrar", ""); }
 
-    // logout real (invalida la sesión en el servidor)
+    // logout real (endpoint correcto)
     function logout() {
-      submit("/acceso/logout", "");
-      // redirigimos igual al login
+      submit("/acceso/logoutPropietario", "");
       window.location.href = "login.html";
     }
+
     // errores de negocio
     async function excepcionDeAplicacion(text) { alert(text); }
+
     // handler de recarga
     function handleRecarga(e) {
       e.preventDefault();
@@ -338,3 +225,5 @@
         new URLSearchParams(new FormData(document.getElementById("formRecarga"))).toString());
     }
   </script>
+</body>
+</html>

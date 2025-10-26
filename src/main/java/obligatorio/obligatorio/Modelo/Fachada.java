@@ -1,82 +1,39 @@
 package obligatorio.obligatorio.Modelo;
 
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.ArrayList;
 
 import obligatorio.obligatorio.Controladores.Respuesta;
 
 public class Fachada {
-    // ================== Singleton ==================
     private static final Fachada INST = new Fachada();
+    public static Fachada getInstancia() { return INST; }
+    private Fachada() {}
 
-    public static Fachada getInstancia() {
-        return INST;
-    }
-
-    private Fachada() {
-    }
-
-    // ================== Sistemas ===================
     private final SistemaAcceso sAcceso = new SistemaAcceso();
     private final SistemaTablero sTablero = new SistemaTablero();
 
-    // ================= Datos de dominio (Tránsitos) =================
-    private final List<Transito> transitos = new ArrayList<>();
+    public void registrarTransito(Transito t) { sAcceso.registrarTransito(t); }
+    public List<Transito> getTransitos() { return sAcceso.getTransitos(); }
 
-    public void registrarTransito(Transito t) {
-        if (t != null)
-            this.transitos.add(t);
-    }
-
-    public List<Transito> getTransitos() {
-        return this.transitos;
-    }
-
-    // ================== Acceso =====================
-    /** Alta por campos (crea la instancia y la registra) */
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
-            BigDecimal saldo, BigDecimal saldoMin, Estado estado)
-            throws ObligatorioException {
-        if (estado == null)
-            estado = new Estado("Habilitado");
-        Propietario p = new Propietario(cedula, pwd, nombreCompleto, saldo, saldoMin, estado);
-        sAcceso.agregarPropietario(p);
-    }
+                                   BigDecimal saldo, BigDecimal saldoMin, Estado estado)
+            throws ObligatorioException { sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin, estado); }
 
-    // ============= Operaciones de Propietario =============
-    public void recargarSaldo(Propietario p, BigDecimal monto) throws ObligatorioException {
-        if (p == null) {
-            throw new ObligatorioException("Sesión expirada");
-        }
-        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ObligatorioException("El monto debe ser mayor que cero");
-        }
+    public void registrarPropietario(Propietario p) throws ObligatorioException { sAcceso.agregarPropietario(p); }
 
-        // Actualiza saldo
-        p.setSaldoActual(p.getSaldoActual().add(monto));
+    public void agregarAdministrador(String cedula, String pwd, String nombreCompleto)
+            throws ObligatorioException { sAcceso.agregarAdministrador(cedula, pwd, nombreCompleto); }
 
-        // Genera notificación
-        p.agregarNotificacion(
-                new Notificacion("Recarga acreditada: $" + monto, LocalDateTime.now()));
-    }
+    public Sesion loginPropietario(String cedula, String pwd) throws ObligatorioException { return sAcceso.loginPropietario(cedula, pwd); }
 
-    /** Alta recibiendo la instancia (útil en precarga para NO duplicar objetos) */
-    public void registrarPropietario(Propietario p) throws ObligatorioException {
-        sAcceso.agregarPropietario(p);
-    }
+    public Administrador loginAdministrador(String cedula, String pwd) throws ObligatorioException { return sAcceso.loginAdministrador(cedula, pwd); }
 
-    public Propietario login(String cedula, String pwd) throws ObligatorioException {
-        return sAcceso.login(cedula, pwd);
-    }
+    public List<Sesion> getSesiones() { return sAcceso.getSesiones(); }
+    public void logout(Sesion s) { sAcceso.logout(s); }
+    public void logoutAdministrador(String cedula) { sAcceso.logoutAdministrador(cedula); }
+    public void recargarSaldo(Propietario p, BigDecimal monto) throws ObligatorioException { sAcceso.recargarSaldo(p, monto); }
 
-    // ============= Caso de uso: Tablero =============
-    public List<Respuesta> armarRespuestasTablero(Propietario p) {
-        return sTablero.armarRespuestasTablero(p);
-    }
-
-    public int borrarNotificaciones(Propietario p) {
-        return sTablero.borrarNotificaciones(p);
-    }
+    public List<Respuesta> armarRespuestasTablero(Propietario p) { return sTablero.armarRespuestasTablero(p); }
+    public int borrarNotificaciones(Propietario p) { return sTablero.borrarNotificaciones(p); }
 }
