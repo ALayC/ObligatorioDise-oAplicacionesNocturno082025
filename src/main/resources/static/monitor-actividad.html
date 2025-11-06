@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor de Actividad</title>
+  <link rel="stylesheet" href="Estilos.css">
+  <script src="vistaWeb.js"></script>
+  <script>
+    // Configuración para cargar datos al iniciar
+    window.urlIniciarVista = "/admin/cargarMonitor";
+    
+    // Redirección si la sesión expiró
+    window.procesarErrorSubmit = function (status, text) {
+      if (status === 400 || status === 401) {
+        alert("Sesión expirada");
+        window.location.href = "login-admin.html";
+      }
+    };
+  </script>
+  <script defer src="utilesVista.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Barra superior -->
+    <div class="topbar">
+      <h2>Monitor de Actividad - Administrador</h2>
+      <div>
+        <span id="nombreAdmin" style="margin-right: 15px; font-weight: bold;"></span>
+        <a href="#" onclick="logout()">Salir</a>
+      </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container" style="max-width: 1200px;">
+      
+      <!-- Sesiones activas de propietarios -->
+      <div class="card">
+        <h3>Sesiones Activas de Propietarios</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Propietario</th>
+              <th>Cédula</th>
+              <th>Fecha Ingreso</th>
+            </tr>
+          </thead>
+          <tbody id="tbodySesiones">
+            <tr><td colspan="3">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estadísticas generales (opcional) -->
+      <div class="card">
+        <h3>Estadísticas del Sistema</h3>
+        <p><strong>Total de propietarios registrados:</strong> <span id="totalPropietarios">-</span></p>
+        <p><strong>Sesiones activas:</strong> <span id="sesionesActivas">-</span></p>
+        <p><strong>Total de tránsitos registrados:</strong> <span id="totalTransitos">-</span></p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Función para procesar las sesiones activas
+    function mostrar_sesionesActivas(lista) {
+      const tbody = document.getElementById('tbodySesiones');
+      tbody.innerHTML = "";
+      
+      if (!lista || !lista.length) {
+        tbody.innerHTML = `<tr><td colspan="3">No hay sesiones activas</td></tr>`;
+        document.getElementById('sesionesActivas').textContent = "0";
+        return;
+      }
+
+      document.getElementById('sesionesActivas').textContent = lista.length;
+      
+      for (const s of lista) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${s.nombrePropietario}</td>
+          <td>${s.cedula}</td>
+          <td>${new Date(s.fechaIngreso).toLocaleString('es-UY')}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Función para procesar estadísticas generales
+    function mostrar_estadisticas(datos) {
+      if (datos.totalPropietarios !== undefined) {
+        document.getElementById('totalPropietarios').textContent = datos.totalPropietarios;
+      }
+      if (datos.totalTransitos !== undefined) {
+        document.getElementById('totalTransitos').textContent = datos.totalTransitos;
+      }
+    }
+
+    // Función para mostrar información del admin
+    function mostrar_infoAdmin(nombreCompleto) {
+      document.getElementById('nombreAdmin').textContent = nombreCompleto;
+    }
+
+    // Logout
+    function logout() {
+      if (confirm("¿Está seguro que desea salir?")) {
+        submit("/acceso/logoutAdmin", "");
+      }
+    }
+
+    // Redirección post-logout
+    function mostrar_paginaLogin(url) {
+      window.location.href = url;
+    }
+  </script>
+</body>
+</html>

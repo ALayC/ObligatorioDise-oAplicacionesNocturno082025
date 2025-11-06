@@ -57,6 +57,10 @@ public final class PrecargaDatos {
         Administrador admin2 = new Administrador("87654321", "root.123", "Admin Secundario");
         administradores.add(admin1);
         administradores.add(admin2);
+        
+        // Registrar administradores en el sistema
+        f.agregarAdministrador(admin1.getCedula(), admin1.getPassword(), admin1.getNombreCompleto());
+        f.agregarAdministrador(admin2.getCedula(), admin2.getPassword(), admin2.getNombreCompleto());
 
         // ----- Propietarios (aún sin registrar en SistemaAcceso) -----
         Propietario prop1 = new Propietario("1", "1", "Walter",

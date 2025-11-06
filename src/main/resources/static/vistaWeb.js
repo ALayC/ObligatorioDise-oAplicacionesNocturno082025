@@ -39,6 +39,7 @@ function submit(endPointUrl, urlEncodedData) {
     }).then(async response => {
         const status = response.status;
         const text = await response.text();
+        console.log("Respuesta del servidor:", { status, url: endPointUrl, text: text.substring(0, 200) });
         //Si el servidor responede con error
         if (status < 200 || status > 299) {
             manejarError(status, text, endPointUrl, urlEncodedData);
@@ -65,6 +66,7 @@ function submit(endPointUrl, urlEncodedData) {
         }
         try {
             const json = JSON.parse(text);
+            console.log("JSON parseado:", json);
             if (Array.isArray(json)) {
                 //si llega una coleccion de respuestas 
                 procesarResultadosSubmit(json);
@@ -103,8 +105,10 @@ function manejarError(status, text, url, data) {
 //cambiando el valor de prefijoNombreFuncionProcesoResultado se puede personalizar el nombre 
 //del prefijo de las funciones que procesan las respuestas del controlador
 function procesarResultadosSubmit(listaRespuestas) {
+    console.log("procesarResultadosSubmit:", listaRespuestas);
     listaRespuestas.forEach(respuesta => {
         let nombreFuncion = prefijoNombreFuncionProcesoResultado + respuesta.id;
+        console.log("Intentando llamar a:", nombreFuncion, "con parámetro:", respuesta.parametro);
 
         if (typeof window[nombreFuncion] === 'function') {
             try {

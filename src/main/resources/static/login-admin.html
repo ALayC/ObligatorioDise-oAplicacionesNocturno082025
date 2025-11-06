@@ -1,55 +1,51 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login Propietario</title>
-  <link rel="stylesheet" href="Estilos.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Administrador</title>
+  <link rel="stylesheet" href="Estilos.css">
 </head>
 <body>
   <div class="container">
-    <h1>Acceso Propietario</h1>
-
-    <form id="formLogin" method="post" onsubmit="handleLogin(event)">
+    <h1>Acceso Administrador</h1>
+    <form id="formLoginAdmin" method="post" onsubmit="handleLoginAdmin(event)">
       <div class="form-group">
         <label for="cedula">Cédula</label>
         <input type="text" id="cedula" name="cedula" required autofocus />
       </div>
-
       <div class="form-group">
         <label for="password">Contraseña</label>
         <input type="password" id="password" name="password" required />
       </div>
-
       <button type="submit">Entrar</button>
     </form>
     <p style="margin-top: 20px; text-align: center;">
-      <a href="login-admin.html">Ir a login de administradores</a>
+      <a href="login.html">Ir a login de propietarios</a>
     </p>
   </div>
 
-  <!-- Utilidades (serializarFormulario, diálogos, etc.) -->
+  <!-- Scripts de infraestructura -->
   <script src="utilesVista.js"></script>
-  <!-- Infra de submit/procesamiento de respuestas -->
   <script src="vistaWeb.js"></script>
 
   <script>
-    function handleLogin(event) {
+    // Handler del formulario
+    function handleLoginAdmin(event) {
       event.preventDefault();
-      // Envía cedula/password como x-www-form-urlencoded
-      submit("acceso/loginPropietario", serializarFormulario("formLogin"));
+      submit("acceso/loginAdministrador", serializarFormulario("formLoginAdmin"));
     }
 
-    // Redirección post-login: acepta "tablero.html" o "/tablero.html" y fuerza ruta absoluta
+    // Redirección exitosa
     function mostrar_loginExitoso(urlDestino) {
       const url = urlDestino && urlDestino.startsWith('/') ? urlDestino : `/${urlDestino || ''}`;
       window.location.href = url;
     }
 
-    // Mensajes de negocio desde el backend (status 299 en tu infra)
+    // Manejo de errores de negocio (status 299)
     async function excepcionDeAplicacion(text) {
       try {
-        await mostrarMensaje(text);
+        await mostrarMensaje(text); // Utiliza utilesVista.js
       } catch (_) {
         alert(text);
       }

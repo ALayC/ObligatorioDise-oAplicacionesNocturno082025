@@ -124,3 +124,106 @@ select:disabled {
     color: #999;
     cursor: not-allowed;
 }
+
+/* Estilos para el monitor de administrador */
+.wrap {
+    min-height: 100vh;
+    background-color: #f4f6f8;
+}
+
+.topbar {
+    background-color: #0057b8;
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.topbar h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}   /* Contenedor principal del login */
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+/* Título principal */
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+/* Grupo de formulario */
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Etiquetas */
+label {
+    margin-bottom: 5px;
+    color: #555;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="password"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+/* Botón */
+button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    border: none;
+    background-color: #0057b8;
+    color: white;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+    background-color: #004799;
+}
+
+.topbar a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid white;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.topbar a:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    margin: 20px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 2px solid #0057b8;
+    padding-bottom: 10px;
+}

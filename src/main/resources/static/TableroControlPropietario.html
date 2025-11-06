@@ -151,12 +151,14 @@
     const setText = (id, val) => document.getElementById(id).textContent = val ?? "—";
 
     function mostrar_cabecera(dto) {
+      console.log("mostrar_cabecera llamada con:", dto);
       setText('cabeceraNombre', dto.propietarioNombreCompleto);
       setText('cabeceraEstado', dto.estado);
       setText('cabeceraSaldo', fmtMoneda(dto.saldoActual));
     }
 
     function mostrar_bonificaciones(lista) {
+      console.log("mostrar_bonificaciones llamada con:", lista);
       const tbody = document.getElementById('tbodyBonificaciones'); tbody.innerHTML = "";
       if (!lista || !lista.length) { tbody.innerHTML = `<tr><td colspan="3">Sin bonificaciones</td></tr>`; return; }
       for (const b of lista) {
@@ -167,6 +169,7 @@
     }
 
     function mostrar_vehiculos(lista) {
+      console.log("mostrar_vehiculos llamada con:", lista);
       const tbody = document.getElementById('tbodyVehiculos'); tbody.innerHTML = "";
       if (!lista || !lista.length) { tbody.innerHTML = `<tr><td colspan="5">Sin vehículos</td></tr>`; return; }
       for (const v of lista) {
