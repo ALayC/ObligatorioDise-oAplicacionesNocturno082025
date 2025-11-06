@@ -1,9 +1,11 @@
 package obligatorio.obligatorio.Modelo;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import obligatorio.obligatorio.Controladores.Respuesta;
+import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
 
 public class Fachada {
     private static final Fachada INST = new Fachada();
@@ -36,4 +38,12 @@ public class Fachada {
 
     public List<Respuesta> armarRespuestasTablero(Propietario p) { return sTablero.armarRespuestasTablero(p); }
     public int borrarNotificaciones(Propietario p) { return sTablero.borrarNotificaciones(p); }
+
+    // Métodos para emular tránsito
+    public void agregarPuesto(Puesto p) throws ObligatorioException { sAcceso.agregarPuesto(p); }
+    public List<Puesto> getPuestos() { return sAcceso.getPuestos(); }
+    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora) 
+            throws ObligatorioException { 
+        return sAcceso.emularTransito(matricula, nombrePuesto, fechaHora); 
+    }
 }

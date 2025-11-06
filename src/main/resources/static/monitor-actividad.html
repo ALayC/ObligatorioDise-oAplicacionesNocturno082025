@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monitor de Actividad</title>
+  <title>Emular Tránsito</title>
   <link rel="stylesheet" href="Estilos.css">
   <script src="vistaWeb.js"></script>
   <script>
     // Configuración para cargar datos al iniciar
-    window.urlIniciarVista = "/admin/cargarMonitor";
+    window.urlIniciarVista = "/admin/cargarEmulador";
     
     // Redirección si la sesión expiró
     window.procesarErrorSubmit = function (status, text) {
@@ -24,7 +24,7 @@
   <div class="wrap">
     <!-- Barra superior -->
     <div class="topbar">
-      <h2>Monitor de Actividad - Administrador</h2>
+      <h2>CU: Emular tránsito</h2>
       <div>
         <span id="nombreAdmin" style="margin-right: 15px; font-weight: bold;"></span>
         <a href="#" onclick="logout()">Salir</a>
@@ -32,74 +32,160 @@
     </div>
 
     <!-- Contenido principal -->
-    <div class="container" style="max-width: 1200px;">
+    <div class="container" style="max-width: 900px;">
       
-      <!-- Sesiones activas de propietarios -->
+      <!-- Emular tránsito -->
       <div class="card">
-        <h3>Sesiones Activas de Propietarios</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Propietario</th>
-              <th>Cédula</th>
-              <th>Fecha Ingreso</th>
-            </tr>
-          </thead>
-          <tbody id="tbodySesiones">
-            <tr><td colspan="3">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
+        <h3>Emular tránsito</h3>
+        <p style="color: #666; margin-bottom: 20px;">Seleccione un puesto, verifique sus tarifas, ingrese una matrícula y emule un tránsito.</p>
+        
+        <form id="formEmular" onsubmit="handleEmularTransito(event)">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <!-- Columna izquierda: Puesto y matrícula -->
+            <div>
+              <div class="form-group">
+                <label for="puesto"><strong>Puesto</strong></label>
+                <select id="puesto" name="puesto" required onchange="cargarTarifas()">
+                  <option value="">-- Seleccione un puesto --</option>
+                </select>
+              </div>
 
-      <!-- Estadísticas generales (opcional) -->
-      <div class="card">
-        <h3>Estadísticas del Sistema</h3>
-        <p><strong>Total de propietarios registrados:</strong> <span id="totalPropietarios">-</span></p>
-        <p><strong>Sesiones activas:</strong> <span id="sesionesActivas">-</span></p>
-        <p><strong>Total de tránsitos registrados:</strong> <span id="totalTransitos">-</span></p>
+              <div class="form-group">
+                <label for="matricula"><strong>Matrícula</strong></label>
+                <input type="text" id="matricula" name="matricula" 
+                       placeholder="Ej: ABC1234" required>
+              </div>
+
+              <div class="form-group">
+                <label for="fechaHora"><strong>Fecha y hora del tránsito</strong></label>
+                <input type="datetime-local" id="fechaHora" name="fechaHora" required>
+              </div>
+
+              <button type="submit" class="btn">Emular tránsito</button>
+            </div>
+
+            <!-- Columna derecha: Tarifas del puesto -->
+            <div>
+              <div class="form-group">
+                <label><strong>Tarifas del puesto</strong></label>
+                <table style="width: 100%; margin-top: 10px;">
+                  <thead>
+                    <tr>
+                      <th>Categoría</th>
+                      <th>Monto</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyTarifas">
+                    <tr><td colspan="2" style="text-align: center; color: #999;">Se muestran categoría y monto actuales del puesto seleccionado.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </form>
+
+        <!-- Resultado -->
+        <div id="resultado" style="margin-top: 30px; display: none;">
+          <h4>Resultado</h4>
+          <p><strong>Propietario:</strong> <span id="resPropietario"></span></p>
+          <p><strong>Categoría:</strong> <span id="resCategoria"></span></p>
+          <p><strong>Bonificación:</strong> <span id="resBonificacion"></span></p>
+          <p><strong>Costo del tránsito:</strong> <span id="resCosto"></span></p>
+          <p><strong>Saldo luego del tránsito:</strong> <span id="resSaldo"></span></p>
+        </div>
+
       </div>
 
     </div>
   </div>
 
   <script>
-    // Función para procesar las sesiones activas
-    function mostrar_sesionesActivas(lista) {
-      const tbody = document.getElementById('tbodySesiones');
-      tbody.innerHTML = "";
+    let puestosData = [];
+
+    // Función para mostrar información del admin
+    function mostrar_infoAdmin(nombreCompleto) {
+      document.getElementById('nombreAdmin').textContent = nombreCompleto;
+    }
+
+    // Función para cargar lista de puestos
+    function mostrar_puestos(lista) {
+      puestosData = lista;
+      const select = document.getElementById('puesto');
+      select.innerHTML = '<option value="">-- Seleccione un puesto --</option>';
       
       if (!lista || !lista.length) {
-        tbody.innerHTML = `<tr><td colspan="3">No hay sesiones activas</td></tr>`;
-        document.getElementById('sesionesActivas').textContent = "0";
+        select.innerHTML += '<option value="" disabled>No hay puestos disponibles</option>';
         return;
       }
 
-      document.getElementById('sesionesActivas').textContent = lista.length;
+      for (const p of lista) {
+        const option = document.createElement('option');
+        option.value = p.nombre;
+        option.textContent = p.nombre;
+        select.appendChild(option);
+      }
+    }
+
+    // Función para cargar tarifas cuando cambia el puesto
+    function cargarTarifas() {
+      const nombrePuesto = document.getElementById('puesto').value;
+      if (!nombrePuesto) {
+        document.getElementById('tbodyTarifas').innerHTML = 
+          '<tr><td colspan="2" style="text-align: center; color: #999;">Se muestran categoría y monto actuales del puesto seleccionado.</td></tr>';
+        return;
+      }
+
+      submit("/admin/obtenerTarifas", "nombrePuesto=" + encodeURIComponent(nombrePuesto));
+    }
+
+    // Función para mostrar tarifas del puesto seleccionado
+    function mostrar_tarifas(lista) {
+      const tbody = document.getElementById('tbodyTarifas');
+      tbody.innerHTML = "";
       
-      for (const s of lista) {
+      if (!lista || !lista.length) {
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align: center;">No hay tarifas definidas</td></tr>';
+        return;
+      }
+
+      for (const t of lista) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${s.nombrePropietario}</td>
-          <td>${s.cedula}</td>
-          <td>${new Date(s.fechaIngreso).toLocaleString('es-UY')}</td>
+          <td>${t.categoria}</td>
+          <td>$ ${parseFloat(t.monto).toFixed(2)}</td>
         `;
         tbody.appendChild(tr);
       }
     }
 
-    // Función para procesar estadísticas generales
-    function mostrar_estadisticas(datos) {
-      if (datos.totalPropietarios !== undefined) {
-        document.getElementById('totalPropietarios').textContent = datos.totalPropietarios;
-      }
-      if (datos.totalTransitos !== undefined) {
-        document.getElementById('totalTransitos').textContent = datos.totalTransitos;
-      }
+    // Función para emular tránsito
+    function handleEmularTransito(event) {
+      event.preventDefault();
+      
+      // Limpiar resultado anterior
+      document.getElementById('resultado').style.display = 'none';
+
+      const formData = new FormData(event.target);
+      const params = new URLSearchParams();
+      
+      params.append('nombrePuesto', formData.get('puesto'));
+      params.append('matricula', formData.get('matricula'));
+      params.append('fechaHora', formData.get('fechaHora'));
+
+      submit("/admin/emularTransito", params.toString());
     }
 
-    // Función para mostrar información del admin
-    function mostrar_infoAdmin(nombreCompleto) {
-      document.getElementById('nombreAdmin').textContent = nombreCompleto;
+    // Función para mostrar resultado de la emulación
+    function mostrar_resultadoEmulacion(datos) {
+      document.getElementById('resPropietario').textContent = datos.nombrePropietario + ' (' + datos.estado + ')';
+      document.getElementById('resCategoria').textContent = datos.categoria;
+      document.getElementById('resBonificacion').textContent = datos.bonificacion || 'Sin bonificación';
+      document.getElementById('resCosto').textContent = '$ ' + parseFloat(datos.costoTransito).toFixed(2);
+      document.getElementById('resSaldo').textContent = '$ ' + parseFloat(datos.saldoDespues).toFixed(2);
+      
+      document.getElementById('resultado').style.display = 'block';
     }
 
     // Logout
@@ -113,6 +199,13 @@
     function mostrar_paginaLogin(url) {
       window.location.href = url;
     }
+
+    // Inicializar fecha y hora actual
+    document.addEventListener("DOMContentLoaded", function() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('fechaHora').value = now.toISOString().slice(0, 16);
+    });
   </script>
 </body>
 </html>

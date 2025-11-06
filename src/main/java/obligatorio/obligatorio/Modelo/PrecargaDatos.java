@@ -92,6 +92,10 @@ public final class PrecargaDatos {
         Puesto p2 = new Puesto("Peaje Pando", "Ruta Interbalnearia KM 32");
         puestos.add(p1);
         puestos.add(p2);
+        
+        // Registrar puestos en el sistema
+        f.agregarPuesto(p1);
+        f.agregarPuesto(p2);
 
         // ----- Tarifas -----
         Tarifa t11 = new Tarifa(p1, auto,   new BigDecimal("120.00"));

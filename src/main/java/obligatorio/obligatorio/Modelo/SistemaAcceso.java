@@ -13,6 +13,7 @@ public class SistemaAcceso {
     private final List<Sesion> sesiones = new ArrayList<>();
     private final Set<String> administradoresLogueados = new HashSet<>();
     private final List<Transito> transitos = new ArrayList<>();
+    private final List<Puesto> puestos = new ArrayList<>();
 
     public void agregarPropietario(Propietario p) throws ObligatorioException {
         if (p == null) throw new ObligatorioException("Propietario nulo");
@@ -80,4 +81,159 @@ public class SistemaAcceso {
 
     public void registrarTransito(Transito t) { if (t != null) transitos.add(t); }
     public List<Transito> getTransitos() { return transitos; }
+
+    public void agregarPuesto(Puesto p) throws ObligatorioException {
+        if (p == null) throw new ObligatorioException("Puesto nulo");
+        if (puestos.contains(p)) throw new ObligatorioException("El puesto ya existe");
+        puestos.add(p);
+    }
+
+    public List<Puesto> getPuestos() { return puestos; }
+
+    /**
+     * Emula un tránsito de un vehículo por un puesto.
+     * 
+     * @param matricula    Matrícula del vehículo
+     * @param nombrePuesto Nombre del puesto
+     * @param fechaHora    Fecha y hora del tránsito
+     * @return ResultadoEmulacionDTO con información del tránsito
+     * @throws ObligatorioException si hay errores de validación
+     */
+    public obligatorio.obligatorio.DTO.ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora) 
+            throws ObligatorioException {
+        
+        // Validar parámetros
+        if (matricula == null || matricula.isBlank()) 
+            throw new ObligatorioException("Matrícula requerida");
+        if (nombrePuesto == null || nombrePuesto.isBlank()) 
+            throw new ObligatorioException("Puesto requerido");
+        if (fechaHora == null) 
+            throw new ObligatorioException("Fecha y hora requeridas");
+
+        // Buscar vehículo
+        Vehiculo vehiculo = null;
+        for (Propietario p : propietarios) {
+            for (Vehiculo v : p.getVehiculos()) {
+                if (v.getMatricula().equalsIgnoreCase(matricula)) {
+                    vehiculo = v;
+                    break;
+                }
+            }
+            if (vehiculo != null) break;
+        }
+        
+        if (vehiculo == null) 
+            throw new ObligatorioException("No existe el vehículo");
+
+        Propietario propietario = vehiculo.getPropietario();
+
+        // Validar estado del propietario
+        String nombreEstado = propietario.getEstadoActual() != null ? 
+            propietario.getEstadoActual().getNombre() : null;
+        
+        if (nombreEstado != null) {
+            if (nombreEstado.equalsIgnoreCase("Deshabilitado")) {
+                throw new ObligatorioException("El propietario del vehículo está deshabilitado, no puede realizar tránsitos");
+            }
+            if (nombreEstado.equalsIgnoreCase("Suspendido")) {
+                throw new ObligatorioException("El propietario del vehículo está suspendido, no puede realizar tránsitos");
+            }
+        }
+
+        // Buscar puesto
+        Puesto puesto = null;
+        for (Puesto p : puestos) {
+            if (p.getNombre().equalsIgnoreCase(nombrePuesto)) {
+                puesto = p;
+                break;
+            }
+        }
+        
+        if (puesto == null) 
+            throw new ObligatorioException("Puesto no encontrado");
+
+        // Buscar tarifa correspondiente
+        Categoria categoria = vehiculo.getCategoria();
+        Tarifa tarifa = null;
+        for (Tarifa t : puesto.getTarifas()) {
+            if (t.getCategoria().equals(categoria)) {
+                tarifa = t;
+                break;
+            }
+        }
+        
+        if (tarifa == null) 
+            throw new ObligatorioException("No existe tarifa para la categoría del vehículo en este puesto");
+
+        // Determinar si hay bonificación
+        boolean esPenalizado = nombreEstado != null && nombreEstado.equalsIgnoreCase("Penalizado");
+        Bonificacion bonificacionAplicada = null;
+        
+        if (!esPenalizado) {
+            // Buscar bonificación del propietario para este puesto
+            for (AsignacionBonificacion asig : propietario.getAsignaciones()) {
+                if (asig.getPuesto().equals(puesto)) {
+                    bonificacionAplicada = asig.getBonificacion();
+                    break;
+                }
+            }
+        }
+
+        // Calcular monto
+        BigDecimal montoBase = tarifa.getMonto();
+        BigDecimal montoCobrado = montoBase;
+
+        // Aplicar bonificación si existe
+        if (bonificacionAplicada != null) {
+            String nombreBonif = bonificacionAplicada.getNombre();
+            if (nombreBonif.equalsIgnoreCase("Exonerados")) {
+                montoCobrado = BigDecimal.ZERO;
+            } else if (nombreBonif.equalsIgnoreCase("Frecuentes")) {
+                // 10% de descuento
+                montoCobrado = montoBase.multiply(new BigDecimal("0.90"));
+            } else if (nombreBonif.equalsIgnoreCase("Trabajadores")) {
+                // 15% de descuento
+                montoCobrado = montoBase.multiply(new BigDecimal("0.85"));
+            }
+        }
+
+        // Verificar saldo suficiente
+        if (propietario.getSaldoActual().compareTo(montoCobrado) < 0) {
+            throw new ObligatorioException("Saldo insuficiente: " + propietario.getSaldoActual());
+        }
+
+        // Descontar saldo
+        propietario.setSaldoActual(propietario.getSaldoActual().subtract(montoCobrado));
+
+        // Registrar tránsito
+        Transito transito = new Transito(vehiculo, puesto, tarifa, fechaHora, 
+                                        montoBase, montoCobrado, bonificacionAplicada, true);
+        transitos.add(transito);
+
+        // Notificación de tránsito (si no es penalizado)
+        if (!esPenalizado) {
+            String mensaje = fechaHora.toString() + " Pasaste por el puesto " + puesto.getNombre() + 
+                           " con el vehículo " + vehiculo.getMatricula();
+            propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
+        }
+
+        // Notificación de saldo bajo si corresponde
+        if (propietario.getSaldoActual().compareTo(propietario.getSaldoMinimoAlerta()) < 0) {
+            String mensaje = LocalDateTime.now().toString() + " Tu saldo actual es de $ " + 
+                           propietario.getSaldoActual() + " Te recomendamos hacer una recarga";
+            propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
+        }
+
+        // Crear DTO de resultado
+        obligatorio.obligatorio.DTO.ResultadoEmulacionDTO resultado = 
+            new obligatorio.obligatorio.DTO.ResultadoEmulacionDTO();
+        resultado.setNombrePropietario(propietario.getNombreCompleto());
+        resultado.setEstado(propietario.getEstadoActual().getNombre());
+        resultado.setCategoria(categoria.getNombre());
+        resultado.setBonificacion(bonificacionAplicada != null ? bonificacionAplicada.getNombre() : null);
+        resultado.setCostoTransito(montoCobrado);
+        resultado.setSaldoDespues(propietario.getSaldoActual());
+
+        return resultado;
+    }
 }
