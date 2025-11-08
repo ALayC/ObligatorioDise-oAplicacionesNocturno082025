@@ -3,6 +3,7 @@ package obligatorio.obligatorio.Modelo.sistemas;
 import obligatorio.obligatorio.Modelo.modelos.*;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,6 +16,8 @@ import obligatorio.obligatorio.DTO.TransitoDTO;
 import obligatorio.obligatorio.DTO.VehiculoResumenDTO;
 
 public class SistemaTablero {
+
+    private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public List<Respuesta> armarRespuestasTablero(Propietario p) {
         CabeceraPropietarioDTO cabecera = construirCabecera(p);
@@ -106,7 +109,9 @@ public class SistemaTablero {
 
     private List<NotificacionDTO> construirNotificaciones(Propietario p) {
         return p.getNotificaciones().stream()
-                .map(n -> new NotificacionDTO(n.getFechaHora(), n.getMensaje()))
+                .map(n -> new NotificacionDTO(
+                        n.getFechaHora().format(FORMATO_FECHA), 
+                        n.getMensaje()))
                 .sorted(Comparator.comparing((NotificacionDTO n) -> n.fechaHora).reversed())
                 .collect(Collectors.toList());
     }

@@ -48,6 +48,25 @@
     .btn:disabled { opacity: .5; cursor: default; }
     .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .topbar a { color: #888; text-decoration: none; }
+    .auto-refresh-indicator { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 6px; 
+      font-size: 0.85rem; 
+      color: #28a745; 
+      background: #f0f9f4; 
+      padding: 4px 10px; 
+      border-radius: 12px;
+      border: 1px solid #d4edda;
+    }
+    .auto-refresh-indicator::before {
+      content: "🔄";
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     @media (max-width: 900px) {
       .row { grid-template-columns: 1fr; }
       .grid-3 { grid-template-columns: 1fr; }
@@ -59,7 +78,12 @@
   <div class="wrap">
     <div class="topbar">
       <h2>Tablero de control del propietario</h2>
-      <a href="#" onclick="logout()">Salir</a>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <span id="autoRefreshStatus" class="auto-refresh-indicator" style="display: none;">
+          Actualización automática
+        </span>
+        <a href="#" onclick="logout()">Salir</a>
+      </div>
     </div>
 
     <!-- Resumen -->
@@ -227,6 +251,105 @@
       submit("/propietario/recargarSaldo",
         new URLSearchParams(new FormData(document.getElementById("formRecarga"))).toString());
     }
+
+    // ===== SSE (Server-Sent Events) para notificaciones en tiempo real =====
+    let eventSource = null;
+
+    function conectarSSE() {
+      if (eventSource) {
+        console.log("⚠️ Ya existe una conexión SSE");
+        return;
+      }
+
+      console.log("📡 Estableciendo conexión SSE...");
+      eventSource = new EventSource('/propietario/sse/conectar');
+
+      eventSource.onopen = function(event) {
+        console.log("✅ Conexión SSE establecida");
+        document.getElementById('autoRefreshStatus').textContent = '🔴 En vivo';
+        document.getElementById('autoRefreshStatus').style.display = 'inline-flex';
+      };
+
+      eventSource.onmessage = function(event) {
+        console.log("📨 Mensaje SSE recibido:", event.data);
+        
+        try {
+          const notificacion = JSON.parse(event.data);
+          procesarNotificacionSSE(notificacion);
+        } catch (e) {
+          console.log("Mensaje SSE (texto plano):", event.data);
+        }
+      };
+
+      eventSource.onerror = function(event) {
+        console.error("❌ Error en conexión SSE:", event);
+        eventSource.close();
+        eventSource = null;
+        document.getElementById('autoRefreshStatus').style.display = 'none';
+        
+        // Reintentar conexión en 5 segundos
+        setTimeout(() => {
+          console.log("🔄 Reintentando conexión SSE...");
+          conectarSSE();
+        }, 5000);
+      };
+    }
+
+    function cerrarSSE() {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+        console.log("🔌 Conexión SSE cerrada");
+      }
+    }
+
+    function procesarNotificacionSSE(notificacion) {
+      console.log("🔔 Procesando notificación SSE:", notificacion);
+
+      // Mostrar notificación visual
+      if (notificacion.tipo === 'TRANSITO_REALIZADO') {
+        mostrarNotificacionVisual('🚗 Tránsito Realizado', notificacion.mensaje);
+      } else if (notificacion.tipo === 'SALDO_BAJO') {
+        mostrarNotificacionVisual('⚠️ Saldo Bajo', notificacion.mensaje);
+      }
+
+      // Recargar tablero para mostrar datos actualizados
+      setTimeout(() => {
+        submit("/propietario/tablero", "");
+      }, 500);
+    }
+
+    function mostrarNotificacionVisual(titulo, mensaje) {
+      // Crear notificación del navegador si está permitido
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(titulo, { body: mensaje, icon: '/favicon.ico' });
+      }
+
+      // Mostrar alerta visual en la página (opcional)
+      console.log(`🔔 ${titulo}: ${mensaje}`);
+    }
+
+    // Iniciar conexión SSE cuando la página carga
+    document.addEventListener("DOMContentLoaded", function () {
+      // Pedir permiso para notificaciones del navegador
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+
+      // Esperar 2 segundos antes de conectar SSE (para que cargue la sesión primero)
+      setTimeout(() => {
+        conectarSSE();
+        console.log("✅ SSE iniciado");
+      }, 2000);
+    });
+
+    // Cerrar SSE cuando el usuario se va
+    window.addEventListener("beforeunload", function () {
+      cerrarSSE();
+    });
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>

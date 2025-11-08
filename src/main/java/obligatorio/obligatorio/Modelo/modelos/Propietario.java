@@ -8,7 +8,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public final class Propietario extends Usuario {
+import obligatorio.obligatorio.observador.Observable;
+
+public final class Propietario extends Observable {
+    private String cedula;
+    private String password;
+    private String nombreCompleto;
     private BigDecimal saldoActual;
     private BigDecimal saldoMinimoAlerta;
     private Estado estadoActual;
@@ -18,11 +23,21 @@ public final class Propietario extends Usuario {
 
     public Propietario(String cedula, String password, String nombreCompleto,
                        BigDecimal saldoActual, BigDecimal saldoMinimoAlerta, Estado estadoActual) {
-        super(cedula, password, nombreCompleto);
+        this.cedula = Objects.requireNonNull(cedula);
+        this.password = Objects.requireNonNull(password);
+        this.nombreCompleto = Objects.requireNonNull(nombreCompleto);
         this.saldoActual = Objects.requireNonNull(saldoActual);
         this.saldoMinimoAlerta = Objects.requireNonNull(saldoMinimoAlerta);
         this.estadoActual = Objects.requireNonNull(estadoActual);
     }
+
+    // Getters y setters de Usuario
+    public String getCedula() { return cedula; }
+    public void setCedula(String cedula) { this.cedula = cedula; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getNombreCompleto() { return nombreCompleto; }
+    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
 
     public BigDecimal getSaldoActual() { return saldoActual; }
     public void setSaldoActual(BigDecimal saldoActual) { this.saldoActual = saldoActual; }

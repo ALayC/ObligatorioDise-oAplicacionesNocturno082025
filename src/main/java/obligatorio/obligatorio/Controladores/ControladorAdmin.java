@@ -2,10 +2,7 @@ package obligatorio.obligatorio.Controladores;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,11 +11,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpSession;
+import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
+import obligatorio.obligatorio.DTO.TarifaDTO;
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
-import obligatorio.obligatorio.Modelo.modelos.Puesto;
 
 @RestController
 @RequestMapping("/admin")
@@ -38,18 +36,8 @@ public class ControladorAdmin {
         try {
             Administrador admin = administradorEnSesion(sesionHttp);
             
-            // Obtener lista de puestos
-            List<Puesto> puestos = Fachada.getInstancia().getPuestos();
-            
-            //TODO: rompe patron experto
-            List<Map<String, Object>> puestosDTO = puestos.stream()
-                .map(p -> {
-                    Map<String, Object> dto = new HashMap<>();
-                    dto.put("nombre", p.getNombre());
-                    dto.put("direccion", p.getDireccion());
-                    return dto;
-                })
-                .collect(Collectors.toList());
+            // Obtener lista de puestos como DTOs desde el sistema
+            List<PuestoDTO> puestosDTO = Fachada.getInstancia().getPuestosDTO();
 
             return Respuesta.lista(
                 new Respuesta("infoAdmin", admin.getNombreCompleto()),
@@ -68,21 +56,8 @@ public class ControladorAdmin {
         try {
             administradorEnSesion(sesionHttp);
             
-            // Buscar puesto
-            Puesto puesto = Fachada.getInstancia().getPuestos().stream()
-                .filter(p -> p.getNombre().equalsIgnoreCase(nombrePuesto))
-                .findFirst()
-                .orElseThrow(() -> new ObligatorioException("Puesto no encontrado"));
-            
-            // Convertir tarifas a DTOs
-            List<Map<String, Object>> tarifasDTO = puesto.getTarifas().stream()
-                .map(t -> {
-                    Map<String, Object> dto = new HashMap<>();
-                    dto.put("categoria", t.getCategoria().getNombre());
-                    dto.put("monto", t.getMonto());
-                    return dto;
-                })
-                .collect(Collectors.toList());
+            // Obtener tarifas como DTOs desde el sistema
+            List<TarifaDTO> tarifasDTO = Fachada.getInstancia().getTarifasPorPuesto(nombrePuesto);
 
             return Respuesta.lista(
                 new Respuesta("tarifas", tarifasDTO)

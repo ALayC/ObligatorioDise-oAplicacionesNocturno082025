@@ -1,5 +1,7 @@
 package obligatorio.obligatorio.Modelo.fachada;
 
+import obligatorio.obligatorio.DTO.PuestoDTO;
+import obligatorio.obligatorio.DTO.TarifaDTO;
 import obligatorio.obligatorio.Modelo.sistemas.SistemaAcceso;
 import obligatorio.obligatorio.Modelo.sistemas.SistemaTablero;
 import obligatorio.obligatorio.Modelo.modelos.*;
@@ -45,6 +47,10 @@ public class Fachada {
     // Métodos para emular tránsito
     public void agregarPuesto(Puesto p) throws ObligatorioException { sAcceso.agregarPuesto(p); }
     public List<Puesto> getPuestos() { return sAcceso.getPuestos(); }
+    public List<PuestoDTO> getPuestosDTO() { return sAcceso.getPuestosDTO(); }
+    public List<TarifaDTO> getTarifasPorPuesto(String nombrePuesto) throws ObligatorioException {
+        return sAcceso.getTarifasPorPuesto(nombrePuesto);
+    }
     public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora) 
             throws ObligatorioException { 
         return sAcceso.emularTransito(matricula, nombrePuesto, fechaHora); 

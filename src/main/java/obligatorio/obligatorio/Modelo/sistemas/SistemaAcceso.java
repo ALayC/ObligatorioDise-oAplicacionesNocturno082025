@@ -1,12 +1,30 @@
 package obligatorio.obligatorio.Modelo.sistemas;
 
-import obligatorio.obligatorio.Modelo.modelos.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import obligatorio.obligatorio.DTO.PuestoDTO;
+import obligatorio.obligatorio.DTO.TarifaDTO;
+import obligatorio.obligatorio.Modelo.modelos.Administrador;
+import obligatorio.obligatorio.Modelo.modelos.AsignacionBonificacion;
+import obligatorio.obligatorio.Modelo.modelos.Bonificacion;
+import obligatorio.obligatorio.Modelo.modelos.Categoria;
+import obligatorio.obligatorio.Modelo.modelos.Estado;
+import obligatorio.obligatorio.Modelo.modelos.Notificacion;
+import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
+import obligatorio.obligatorio.Modelo.modelos.Propietario;
+import obligatorio.obligatorio.Modelo.modelos.Puesto;
+import obligatorio.obligatorio.Modelo.modelos.Sesion;
+import obligatorio.obligatorio.Modelo.modelos.Tarifa;
+import obligatorio.obligatorio.Modelo.modelos.Transito;
+import obligatorio.obligatorio.Modelo.modelos.Vehiculo;
+import obligatorio.obligatorio.observador.SaldoBajoEvento;
+import obligatorio.obligatorio.observador.TransitoRealizadoEvento;
 
 public class SistemaAcceso {
     private final List<Propietario> propietarios = new ArrayList<>();
@@ -90,6 +108,37 @@ public class SistemaAcceso {
     }
 
     public List<Puesto> getPuestos() { return puestos; }
+
+    /**
+     * Obtiene la lista de puestos como DTOs.
+     * 
+     * @return Lista de PuestoDTO
+     */
+    public List<PuestoDTO> getPuestosDTO() {
+        return puestos.stream()
+            .map(p -> new PuestoDTO(p.getNombre(), p.getDireccion()))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene las tarifas de un puesto como DTOs.
+     * 
+     * @param nombrePuesto Nombre del puesto
+     * @return Lista de TarifaDTO
+     * @throws ObligatorioException si el puesto no existe
+     */
+    public List<TarifaDTO> getTarifasPorPuesto(String nombrePuesto) throws ObligatorioException {
+        // Buscar puesto
+        Puesto puesto = puestos.stream()
+            .filter(p -> p.getNombre().equalsIgnoreCase(nombrePuesto))
+            .findFirst()
+            .orElseThrow(() -> new ObligatorioException("Puesto no encontrado"));
+        
+        // Convertir tarifas a DTOs
+        return puesto.getTarifas().stream()
+            .map(t -> new TarifaDTO(t.getCategoria().getNombre(), t.getMonto()))
+            .collect(Collectors.toList());
+    }
 
     /**
      * Emula un tránsito de un vehículo por un puesto.
@@ -202,19 +251,13 @@ public class SistemaAcceso {
                                         montoBase, montoCobrado, bonificacionAplicada, true);
         transitos.add(transito);
 
-        // Notificación de tránsito (si no es penalizado)
+        // Notificar evento de tránsito realizado (si no es penalizado)
         if (!esPenalizado) {
-            String mensaje = fechaHora.toString() + " Pasaste por el puesto " + puesto.getNombre() + 
-                           " con el vehículo " + vehiculo.getMatricula();
-            propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
+            propietario.avisar(new TransitoRealizadoEvento(vehiculo, puesto, fechaHora));
         }
 
-        // Notificación de saldo bajo si corresponde
-        if (propietario.getSaldoActual().compareTo(propietario.getSaldoMinimoAlerta()) < 0) {
-            String mensaje = LocalDateTime.now().toString() + " Tu saldo actual es de $ " + 
-                           propietario.getSaldoActual() + " Te recomendamos hacer una recarga";
-            propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
-        }
+        // Notificar evento de saldo bajo (siempre se verifica)
+        propietario.avisar(new SaldoBajoEvento(propietario.getSaldoActual()));
 
         // Crear DTO de resultado
         obligatorio.obligatorio.DTO.ResultadoEmulacionDTO resultado = 

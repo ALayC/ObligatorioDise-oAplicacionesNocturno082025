@@ -1,11 +1,12 @@
 package obligatorio.obligatorio.Modelo.modelos;
 
-import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
 
 public final class PrecargaDatos {
     private final List<Administrador> administradores = new ArrayList<>();
@@ -66,8 +67,8 @@ public final class PrecargaDatos {
         // ----- Propietarios (aún sin registrar en SistemaAcceso) -----
         Propietario prop1 = new Propietario("1", "1", "Walter",
                 new BigDecimal("2000.00"), new BigDecimal("500.00"), habilitado);
-        Propietario prop2 = new Propietario("34567890", "prop.456", "Propietario Dos",
-                new BigDecimal("800.00"), new BigDecimal("200.00"), habilitado);
+        Propietario prop2 = new Propietario("2", "2", "josé",
+                new BigDecimal("800.00"), new BigDecimal("200.00"), penalizado);
 
         propietarios.add(prop1);
         propietarios.add(prop2);
@@ -117,12 +118,14 @@ public final class PrecargaDatos {
         Vehiculo v1 = new Vehiculo("1", "1",      "Rojo",  auto,   prop1);
         Vehiculo v2 = new Vehiculo("SBC5678", "Camión 3/4", "Azul",  camion, prop1);
         Vehiculo v3 = new Vehiculo("SBD9012", "Street",     "Negro", moto,   prop2);
-
+        Vehiculo v4 = new Vehiculo("2", "2",      "Rojo",  auto,   prop2);
+        
         prop1.agregarVehiculo(v1);
         prop1.agregarVehiculo(v2);
         prop2.agregarVehiculo(v3);
+        prop2.agregarVehiculo(v4);
 
-        vehiculos.add(v1); vehiculos.add(v2); vehiculos.add(v3);
+        vehiculos.add(v1); vehiculos.add(v2); vehiculos.add(v3); vehiculos.add(v4);
 
         // ----- Asignaciones de bonificación -----
         AsignacionBonificacion a1 = new AsignacionBonificacion(prop1, p1, frecuentes,  LocalDate.now().minusDays(5));
@@ -136,15 +139,18 @@ public final class PrecargaDatos {
         asignaciones.add(a1); asignaciones.add(a2); asignaciones.add(a3);
 
         // ----- Notificaciones -----
-        Notificacion n11 = new Notificacion("Recarga acreditada: $500",
+        Notificacion n11 = new Notificacion(
+                LocalDateTime.now().minusHours(2).toLocalDate() + " Recarga acreditada: $500",
                 LocalDateTime.now().minusHours(2));
-        Notificacion n12 = new Notificacion("Saldo bajo: recuerde recargar",
+        Notificacion n12 = new Notificacion(
+                LocalDateTime.now().minusDays(1).toLocalDate() + " Saldo bajo: recuerde recargar",
                 LocalDateTime.now().minusDays(1).withHour(9).withMinute(30));
         prop1.agregarNotificacion(n11);
         prop1.agregarNotificacion(n12);
         notificaciones.add(n11); notificaciones.add(n12);
 
-        Notificacion n21 = new Notificacion("Bonificación 'Trabajadores' aplicada en Peaje Santa Lucía",
+        Notificacion n21 = new Notificacion(
+                LocalDateTime.now().minusHours(5).toLocalDate() + " Bonificación 'Trabajadores' aplicada en Peaje Santa Lucía",
                 LocalDateTime.now().minusHours(5));
         prop2.agregarNotificacion(n21);
         notificaciones.add(n21);
