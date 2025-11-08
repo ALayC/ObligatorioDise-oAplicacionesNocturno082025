@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpSession;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
-import obligatorio.obligatorio.Modelo.Administrador;
-import obligatorio.obligatorio.Modelo.Fachada;
-import obligatorio.obligatorio.Modelo.ObligatorioException;
-import obligatorio.obligatorio.Modelo.Puesto;
+import obligatorio.obligatorio.Modelo.modelos.Administrador;
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
+import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
+import obligatorio.obligatorio.Modelo.modelos.Puesto;
 
 @RestController
 @RequestMapping("/admin")
@@ -41,7 +41,7 @@ public class ControladorAdmin {
             // Obtener lista de puestos
             List<Puesto> puestos = Fachada.getInstancia().getPuestos();
             
-            // Convertir a DTOs simples
+            //TODO: rompe patron experto
             List<Map<String, Object>> puestosDTO = puestos.stream()
                 .map(p -> {
                     Map<String, Object> dto = new HashMap<>();

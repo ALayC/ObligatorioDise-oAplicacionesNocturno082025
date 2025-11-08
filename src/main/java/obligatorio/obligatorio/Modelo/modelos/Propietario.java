@@ -1,4 +1,4 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -39,6 +39,8 @@ public final class Propietario extends Usuario {
     public int cantidadNotificaciones() { return notificaciones.size(); }
     public void limpiarNotificaciones() { notificaciones.clear(); }
 
+
+    
     @Override
     public boolean equals(Object o){ return o instanceof Propietario p && getCedula().equals(p.getCedula()); }
     @Override

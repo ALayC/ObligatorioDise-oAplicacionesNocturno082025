@@ -1,5 +1,8 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.fachada;
 
+import obligatorio.obligatorio.Modelo.sistemas.SistemaAcceso;
+import obligatorio.obligatorio.Modelo.sistemas.SistemaTablero;
+import obligatorio.obligatorio.Modelo.modelos.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;

@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpSession;
-import obligatorio.obligatorio.Modelo.Fachada;
-import obligatorio.obligatorio.Modelo.ObligatorioException;
-import obligatorio.obligatorio.Modelo.Propietario;
-import obligatorio.obligatorio.Modelo.Sesion;
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
+import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
+import obligatorio.obligatorio.Modelo.modelos.Propietario;
+import obligatorio.obligatorio.Modelo.modelos.Sesion;
 
 @RestController
 @RequestMapping("/propietario")

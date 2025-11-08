@@ -1,5 +1,6 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.modelos;
 
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -113,7 +114,7 @@ public final class PrecargaDatos {
         tarifas.add(t21); tarifas.add(t22); tarifas.add(t23);
 
         // ----- Vehículos (asociados a propietarios) -----
-        Vehiculo v1 = new Vehiculo("SBA1234", "Sedan",      "Rojo",  auto,   prop1);
+        Vehiculo v1 = new Vehiculo("1", "1",      "Rojo",  auto,   prop1);
         Vehiculo v2 = new Vehiculo("SBC5678", "Camión 3/4", "Azul",  camion, prop1);
         Vehiculo v3 = new Vehiculo("SBD9012", "Street",     "Negro", moto,   prop2);
 

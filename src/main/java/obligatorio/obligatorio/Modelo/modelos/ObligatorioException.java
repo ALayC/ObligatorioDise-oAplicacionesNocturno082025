@@ -1,4 +1,4 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.modelos;
 
 public class ObligatorioException extends Exception{
         public ObligatorioException(String message) {

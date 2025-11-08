@@ -1,4 +1,4 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.modelos;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

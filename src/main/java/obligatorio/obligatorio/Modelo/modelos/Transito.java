@@ -1,4 +1,4 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

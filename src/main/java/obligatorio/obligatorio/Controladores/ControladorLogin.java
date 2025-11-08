@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpSession;
-import obligatorio.obligatorio.Modelo.Administrador;
-import obligatorio.obligatorio.Modelo.Fachada;
-import obligatorio.obligatorio.Modelo.ObligatorioException;
-import obligatorio.obligatorio.Modelo.Sesion;
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
+import obligatorio.obligatorio.Modelo.modelos.Administrador;
+import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
+import obligatorio.obligatorio.Modelo.modelos.Sesion;
 
 @RestController
 @RequestMapping("/acceso")
@@ -52,7 +52,7 @@ public List<Respuesta> loginPropietario(HttpSession sesionHttp,
     public List<Respuesta> logoutAdmin(HttpSession sesionHttp) {
         Object obj = sesionHttp.getAttribute("usuarioAdmin");
         if (obj instanceof Administrador a) {
-            obligatorio.obligatorio.Modelo.Fachada.getInstancia().logoutAdministrador(a.getCedula());
+            Fachada.getInstancia().logoutAdministrador(a.getCedula());
             sesionHttp.removeAttribute("usuarioAdmin");
         }
         return Respuesta.lista(new Respuesta("paginaLogin", "login-admin.html"));

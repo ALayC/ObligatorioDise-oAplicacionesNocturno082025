@@ -3,8 +3,8 @@ package obligatorio.obligatorio;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import obligatorio.obligatorio.Modelo.ObligatorioException;
-import obligatorio.obligatorio.Modelo.PrecargaDatos;
+import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
+import obligatorio.obligatorio.Modelo.modelos.PrecargaDatos;
 
 @SpringBootApplication
 public class ObligatorioApplication {

@@ -1,5 +1,7 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.sistemas;
 
+import obligatorio.obligatorio.Modelo.modelos.*;
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -12,9 +14,9 @@ import obligatorio.obligatorio.DTO.NotificacionDTO;
 import obligatorio.obligatorio.DTO.TransitoDTO;
 import obligatorio.obligatorio.DTO.VehiculoResumenDTO;
 
-final class SistemaTablero {
+public class SistemaTablero {
 
-    List<Respuesta> armarRespuestasTablero(Propietario p) {
+    public List<Respuesta> armarRespuestasTablero(Propietario p) {
         CabeceraPropietarioDTO cabecera = construirCabecera(p);
         List<BonificacionAsignadaDTO> bonis = construirBonificaciones(p);
         List<VehiculoResumenDTO> vehs = construirVehiculos(p);
@@ -29,7 +31,7 @@ final class SistemaTablero {
                 new Respuesta("notificaciones", notifs));
     }
 
-    int borrarNotificaciones(Propietario p) {
+    public int borrarNotificaciones(Propietario p) {
         int cant = p.cantidadNotificaciones();
         if (cant > 0) {
             p.limpiarNotificaciones();

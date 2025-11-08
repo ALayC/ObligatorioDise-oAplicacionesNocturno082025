@@ -1,4 +1,4 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -24,4 +24,14 @@ public final class Tarifa {
         return puesto.equals(t.puesto) && categoria.equals(t.categoria);
     }
     @Override public int hashCode(){return Objects.hash(puesto, categoria);}
+    
+    // NUEVO MÉTODO: Obtener tarifa por categoría directamente del puesto
+    public static Tarifa obtenerTarifaPorCategoria(Puesto puesto, Categoria categoria) {
+        for (Tarifa t : puesto.getTarifas()) {
+            if (t.getCategoria().equals(categoria)) {
+                return t;
+            }
+        }
+        return null; // O lanzar una excepción si se prefiere
+    }
 }

@@ -1,5 +1,6 @@
-package obligatorio.obligatorio.Modelo;
+package obligatorio.obligatorio.Modelo.sistemas;
 
+import obligatorio.obligatorio.Modelo.modelos.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -185,16 +186,7 @@ public class SistemaAcceso {
 
         // Aplicar bonificación si existe
         if (bonificacionAplicada != null) {
-            String nombreBonif = bonificacionAplicada.getNombre();
-            if (nombreBonif.equalsIgnoreCase("Exonerados")) {
-                montoCobrado = BigDecimal.ZERO;
-            } else if (nombreBonif.equalsIgnoreCase("Frecuentes")) {
-                // 10% de descuento
-                montoCobrado = montoBase.multiply(new BigDecimal("0.90"));
-            } else if (nombreBonif.equalsIgnoreCase("Trabajadores")) {
-                // 15% de descuento
-                montoCobrado = montoBase.multiply(new BigDecimal("0.85"));
-            }
+            montoCobrado = bonificacionAplicada.calcularMonto(montoBase);
         }
 
         // Verificar saldo suficiente
