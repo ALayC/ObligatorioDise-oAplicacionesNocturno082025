@@ -28,7 +28,7 @@ public class NotificadorSaldoBajo implements Observador {
     }
 
     @Override
-    public void actualizar(Observable origen, Object evento) {
+    public void actualizar(Object evento, Observable origen) {
         if (evento instanceof SaldoBajoEvento saldoEvento) {
             if (origen instanceof Propietario propietario) {
                 // Verificar si el saldo está por debajo del mínimo de alerta

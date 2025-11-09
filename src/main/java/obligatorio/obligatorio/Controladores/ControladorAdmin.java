@@ -149,7 +149,7 @@ public class ControladorAdmin implements Observador {
 
     /** Implementación del patrón Observador: recibe eventos globales de la Fachada. */
     @Override
-    public void actualizar(Observable origen, Object evento) {
+    public void actualizar(Object evento, Observable origen) {
         System.out.println("🔔 ControladorAdmin.actualizar() recibió evento: " + evento + " | Conexión SSE: " + (conexionNavegador != null && conexionNavegador.estaConectado()));
         
         if(!(evento instanceof Fachada.Eventos)) return;

@@ -28,7 +28,7 @@ public class NotificadorTransito implements Observador {
     }
 
     @Override
-    public void actualizar(Observable origen, Object evento) {
+    public void actualizar(Object evento, Observable origen) {
         if (evento instanceof TransitoRealizadoEvento transitoEvento) {
             if (origen instanceof Propietario propietario) {
                 // Crear notificación de tránsito realizado

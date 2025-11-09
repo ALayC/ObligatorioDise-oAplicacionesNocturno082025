@@ -2,6 +2,6 @@ package obligatorio.obligatorio.observador;
 
 public interface Observador {
 
-    public void actualizar(Observable origen, Object evento);
+    public void actualizar(Object evento, Observable origen);
 
 }
