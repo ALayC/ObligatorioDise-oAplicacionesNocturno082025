@@ -39,12 +39,23 @@ public class NotificadorTransito implements Observador {
                 
                 propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
                 
+                System.out.println("🚗 NotificadorTransito.actualizar() - Propietario: " + propietario.getNombreCompleto());
+                System.out.println("   Mensaje: " + mensaje);
+                System.out.println("   ConexionNavegador es null: " + (conexionNavegador == null));
+                if (conexionNavegador != null) {
+                    System.out.println("   ConexionNavegador.estaConectado(): " + conexionNavegador.estaConectado());
+                }
+                
                 // Si hay conexión SSE, enviar notificación en tiempo real
                 if (conexionNavegador != null && conexionNavegador.estaConectado()) {
                     Map<String, Object> notif = new HashMap<>();
                     notif.put("tipo", "TRANSITO_REALIZADO");
                     notif.put("mensaje", mensaje);
+                    System.out.println("📤 Intentando enviar notificación vía SSE: " + notif);
                     conexionNavegador.enviarJSON(notif);
+                    System.out.println("✅ Llamada a enviarJSON completada");
+                } else {
+                    System.out.println("⚠️ No se pudo enviar notificación - SSE no conectado");
                 }
             }
         }

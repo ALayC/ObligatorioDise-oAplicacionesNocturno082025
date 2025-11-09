@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
@@ -44,9 +45,12 @@ public class CasoUsoTableroPropietario {
      * El cliente JavaScript se conecta aquí para recibir notificaciones en tiempo real.
      */
     @GetMapping(value = "/sse/conectar", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter conectarSSE(HttpSession sesionHttp) {
+    public ResponseEntity<SseEmitter> conectarSSE(HttpSession sesionHttp) {
         try {
             Propietario propietario = propietarioEnSesion(sesionHttp);
+            
+            System.out.println("📡 Solicitando conexión SSE para: " + propietario.getNombreCompleto() 
+                + " | Session ID: " + sesionHttp.getId());
             
             // Establecer conexión SSE
             conexionNavegador.conectarSSE();
@@ -60,27 +64,41 @@ public class CasoUsoTableroPropietario {
                 if (obs instanceof NotificadorTransito) {
                     tieneNotificadorTransito = true;
                     ((NotificadorTransito) obs).setConexionNavegador(conexionNavegador);
+                    System.out.println("🔄 NotificadorTransito actualizado con nueva conexión");
                 } else if (obs instanceof NotificadorSaldoBajo) {
                     tieneNotificadorSaldoBajo = true;
                     ((NotificadorSaldoBajo) obs).setConexionNavegador(conexionNavegador);
+                    System.out.println("🔄 NotificadorSaldoBajo actualizado con nueva conexión");
                 }
             }
             
             // Si no existen, crearlos y agregarlos
             if (!tieneNotificadorTransito) {
                 propietario.agregarObservador(new NotificadorTransito(conexionNavegador));
+                System.out.println("➕ NotificadorTransito agregado");
             }
             if (!tieneNotificadorSaldoBajo) {
                 propietario.agregarObservador(new NotificadorSaldoBajo(conexionNavegador));
+                System.out.println("➕ NotificadorSaldoBajo agregado");
             }
             
-            System.out.println("✅ Conexión SSE establecida para " + propietario.getNombreCompleto());
+            System.out.println("✅ Conexión SSE establecida para " + propietario.getNombreCompleto() 
+                + " | Total observadores: " + propietario.getObservadores().size());
             
-            return conexionNavegador.getConexionSSE();
+            // Configurar headers para mejor compatibilidad cross-browser (especialmente Chrome)
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.TEXT_EVENT_STREAM);
+            headers.setCacheControl("no-cache, no-transform");
+            headers.set("Connection", "keep-alive"); // CRÍTICO para Chrome
+            headers.set("X-Accel-Buffering", "no"); // Disable nginx buffering
+            
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(conexionNavegador.getConexionSSE());
             
         } catch (ObligatorioException e) {
             System.out.println("❌ Error al establecer SSE: " + e.getMessage());
-            return null;
+            return ResponseEntity.badRequest().build();
         }
     }
 

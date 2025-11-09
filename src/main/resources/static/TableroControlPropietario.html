@@ -254,6 +254,8 @@
 
     // ===== SSE (Server-Sent Events) para notificaciones en tiempo real =====
     let eventSource = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 5;
 
     function conectarSSE() {
       if (eventSource) {
@@ -261,37 +263,70 @@
         return;
       }
 
-      console.log("📡 Estableciendo conexión SSE...");
+      console.log("📡 Estableciendo conexión SSE... (intento " + (reconnectAttempts + 1) + ")");
+      
+      // IMPORTANTE: withCredentials debe ser false para same-origin
       eventSource = new EventSource('/propietario/sse/conectar');
 
       eventSource.onopen = function(event) {
-        console.log("✅ Conexión SSE establecida");
-        document.getElementById('autoRefreshStatus').textContent = '🔴 En vivo';
-        document.getElementById('autoRefreshStatus').style.display = 'inline-flex';
+        console.log("✅ Conexión SSE establecida (readyState: " + eventSource.readyState + ")");
+        reconnectAttempts = 0; // Resetear contador de reintentos
+        const indicator = document.getElementById('autoRefreshStatus');
+        if (indicator) {
+          indicator.textContent = '� En vivo';
+          indicator.style.display = 'inline-flex';
+          indicator.style.backgroundColor = '#d4edda';
+          indicator.style.borderColor = '#c3e6cb';
+        }
       };
 
       eventSource.onmessage = function(event) {
         console.log("📨 Mensaje SSE recibido:", event.data);
         
         try {
-          const notificacion = JSON.parse(event.data);
-          procesarNotificacionSSE(notificacion);
+          const data = JSON.parse(event.data);
+          
+          // Si es el mensaje de conexión establecida
+          if (data.tipo === 'CONEXION_ESTABLECIDA') {
+            console.log("✅ " + data.mensaje);
+            return;
+          }
+          
+          // Procesar notificación
+          procesarNotificacionSSE(data);
         } catch (e) {
-          console.log("Mensaje SSE (texto plano):", event.data);
+          console.error("❌ Error al parsear mensaje SSE:", e);
+          console.log("Mensaje raw:", event.data);
         }
       };
 
       eventSource.onerror = function(event) {
-        console.error("❌ Error en conexión SSE:", event);
-        eventSource.close();
-        eventSource = null;
-        document.getElementById('autoRefreshStatus').style.display = 'none';
+        console.error("❌ Error en conexión SSE (readyState: " + (eventSource ? eventSource.readyState : 'null') + ")", event);
         
-        // Reintentar conexión en 5 segundos
-        setTimeout(() => {
-          console.log("🔄 Reintentando conexión SSE...");
-          conectarSSE();
-        }, 5000);
+        const indicator = document.getElementById('autoRefreshStatus');
+        if (indicator) {
+          indicator.textContent = '🔴 Desconectado';
+          indicator.style.backgroundColor = '#f8d7da';
+          indicator.style.borderColor = '#f5c6cb';
+        }
+        
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        
+        // Reintentar conexión con backoff exponencial
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttempts++;
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 10000);
+          console.log("🔄 Reintentando conexión SSE en " + (delay / 1000) + " segundos...");
+          setTimeout(conectarSSE, delay);
+        } else {
+          console.error("❌ Máximo de reintentos alcanzado. No se puede conectar SSE.");
+          if (indicator) {
+            indicator.textContent = '❌ Sin conexión';
+          }
+        }
       };
     }
 
@@ -314,9 +349,8 @@
       }
 
       // Recargar tablero para mostrar datos actualizados
-      setTimeout(() => {
-        submit("/propietario/tablero", "");
-      }, 500);
+      console.log("🔄 Recargando tablero...");
+      submit("/propietario/tablero", "");
     }
 
     function mostrarNotificacionVisual(titulo, mensaje) {
@@ -331,16 +365,21 @@
 
     // Iniciar conexión SSE cuando la página carga
     document.addEventListener("DOMContentLoaded", function () {
+      console.log("📄 DOM cargado - Iniciando SSE inmediatamente");
+      
       // Pedir permiso para notificaciones del navegador
       if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
+        Notification.requestPermission().then(function(permission) {
+          console.log("Permiso de notificaciones:", permission);
+        });
       }
 
-      // Esperar 2 segundos antes de conectar SSE (para que cargue la sesión primero)
+      // Conectar SSE INMEDIATAMENTE (sin delay)
+      // Esperar solo 100ms para que la sesión esté lista
       setTimeout(() => {
         conectarSSE();
-        console.log("✅ SSE iniciado");
-      }, 2000);
+        console.log("✅ Proceso de conexión SSE iniciado");
+      }, 100);
     });
 
     // Cerrar SSE cuando el usuario se va

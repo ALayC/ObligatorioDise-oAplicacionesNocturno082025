@@ -18,7 +18,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jakarta.servlet.http.HttpSession;
 import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
-import obligatorio.obligatorio.DTO.SesionDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
@@ -62,7 +61,6 @@ public class ControladorAdmin implements Observador {
             
             // Obtener lista de puestos como DTOs desde el sistema
             List<PuestoDTO> puestosDTO = Fachada.getInstancia().getPuestosDTO();
-            List<SesionDTO> sesionesDTO = SesionDTO.lista(Fachada.getInstancia().getSesiones());
 
             // Registrar como observador (única vez por sesión)
             Fachada.getInstancia().agregarObservador(this);
@@ -70,8 +68,7 @@ public class ControladorAdmin implements Observador {
 
             return Respuesta.lista(
                 new Respuesta("infoAdmin", admin.getNombreCompleto()),
-                new Respuesta("puestos", puestosDTO),
-                new Respuesta("sesiones", sesionesDTO)
+                new Respuesta("puestos", puestosDTO)
             );
             
         } catch (ObligatorioException e) {
@@ -158,22 +155,9 @@ public class ControladorAdmin implements Observador {
         if(!(evento instanceof Fachada.Eventos)) return;
         Fachada.Eventos ev = (Fachada.Eventos) evento;
         switch (ev) {
-            case cambioListaSesiones -> enviarActualizacionSesiones();
             case transitoRegistrado -> enviarActualizacionTransitos();
-            case saldoActualizado, notificacionesActualizadas -> enviarActualizacionSesiones();
             default -> { }
         }
-    }
-
-    private void enviarActualizacionSesiones(){
-        System.out.println("📤 Intentando enviar actualización de sesiones...");
-        if(conexionNavegador == null || !conexionNavegador.estaConectado()) {
-            System.out.println("⚠️ No hay conexión SSE activa para este controlador");
-            return;
-        }
-        List<SesionDTO> sesionesDTO = SesionDTO.lista(Fachada.getInstancia().getSesiones());
-        System.out.println("✅ Enviando " + sesionesDTO.size() + " sesiones vía SSE");
-        conexionNavegador.enviarJSON(Respuesta.lista(new Respuesta("sesiones", sesionesDTO)));
     }
 
     private void enviarActualizacionTransitos(){

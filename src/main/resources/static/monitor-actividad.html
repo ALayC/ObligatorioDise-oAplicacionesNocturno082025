@@ -36,9 +36,6 @@
 
     <!-- Contenido principal -->
     <div class="container" style="max-width: 1100px;">
-      <!-- Sesiones en tiempo real -->
-      <div id="divSesionesRealtime" class="card" style="margin-bottom:25px;"></div>
-      
       <!-- Emular tránsito -->
       <div class="card">
         <h3>Emular tránsito</h3>
@@ -113,39 +110,6 @@
     // Función para mostrar información del admin
     function mostrar_infoAdmin(nombreCompleto) {
       document.getElementById('nombreAdmin').textContent = nombreCompleto;
-    }
-
-    // Función para mostrar sesiones (SSE / inicial)
-    function mostrar_sesiones(sesiones){
-      try {
-        console.log("mostrar_sesiones recibió:", sesiones);
-        const div = document.getElementById('divSesionesRealtime');
-        if(!div) {
-          console.error("No se encontró divSesionesRealtime");
-          return;
-        }
-        
-        let html = '<h3>Sesiones activas</h3><table style="width:100%"><thead><tr><th>Ingreso</th><th>Cédula</th><th>Nombre</th><th>Estado</th><th>Saldo</th><th>Vehículos</th></tr></thead><tbody>';
-        if(!sesiones || !sesiones.length){
-          html += '<tr><td colspan="6" style="text-align:center;color:#888">Sin sesiones</td></tr>';
-        } else {
-          sesiones.forEach(s => {
-            const fechaIngreso = s.fechaIngreso || 'N/A';
-            const cedula = s.cedulaPropietario || 'N/A';
-            const nombre = s.nombrePropietario || 'N/A';
-            const estado = s.estadoPropietario || 'N/A';
-            const saldo = s.saldoActual || '0';
-            const vehiculos = s.cantidadVehiculos || 0;
-            html += `<tr><td>${fechaIngreso}</td><td>${cedula}</td><td>${nombre}</td><td>${estado}</td><td>$ ${saldo}</td><td>${vehiculos}</td></tr>`;
-          });
-        }
-        html += '</tbody></table>';
-        div.innerHTML = html;
-        console.log("Sesiones mostradas correctamente");
-      } catch(e) {
-        console.error("Error en mostrar_sesiones:", e);
-        alert("Error al mostrar sesiones: " + e.message);
-      }
     }
 
     // Total de tránsitos (SSE)
