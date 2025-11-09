@@ -9,6 +9,8 @@ var urlCierreVista = null;
 var parametrosCierreVista = "";
 var isPrimerSubmitFinalizado = false;
 var prefijoNombreFuncionProcesoResultado = "mostrar_";
+// Hook para SSE: si se define urlRegistroSSE la librería sse.js se encargará
+// de registrar EventSource luego del primer submit.
 
 // Se ejecuta al final de la carga de la página para avisar al controlador que la vista esta cargada
 document.addEventListener("DOMContentLoaded", function () {

@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Emular Tránsito</title>
+  <title>Monitor actividad y Emular Tránsito</title>
   <link rel="stylesheet" href="Estilos.css">
   <script src="vistaWeb.js"></script>
+  <script src="sse.js"></script>
   <script>
-    // Configuración para cargar datos al iniciar
-    window.urlIniciarVista = "/admin/cargarEmulador";
+  // Configuración inicial de la vista y SSE
+  window.urlIniciarVista = "/admin/vistaConectada"; // POST inicial (registra observador y datos base)
+  window.urlCierreVista = "/admin/vistaCerrada";    // POST cierre (quitar observador)
+  window.urlRegistroSSE = "/admin/registrarSSE";    // GET SSE (EventSource)
     
     // Redirección si la sesión expiró
     window.procesarErrorSubmit = function (status, text) {
@@ -32,7 +35,9 @@
     </div>
 
     <!-- Contenido principal -->
-    <div class="container" style="max-width: 900px;">
+    <div class="container" style="max-width: 1100px;">
+      <!-- Sesiones en tiempo real -->
+      <div id="divSesionesRealtime" class="card" style="margin-bottom:25px;"></div>
       
       <!-- Emular tránsito -->
       <div class="card">
@@ -86,7 +91,8 @@
           </div>
         </form>
 
-        <!-- Resultado -->
+  <div style="margin-top:25px"><strong>Total tránsitos registrados:</strong> <span id="spanTotalTransitos">0</span></div>
+  <!-- Resultado -->
         <div id="resultado" style="margin-top: 30px; display: none;">
           <h4>Resultado</h4>
           <p><strong>Propietario:</strong> <span id="resPropietario"></span></p>
@@ -107,6 +113,45 @@
     // Función para mostrar información del admin
     function mostrar_infoAdmin(nombreCompleto) {
       document.getElementById('nombreAdmin').textContent = nombreCompleto;
+    }
+
+    // Función para mostrar sesiones (SSE / inicial)
+    function mostrar_sesiones(sesiones){
+      try {
+        console.log("mostrar_sesiones recibió:", sesiones);
+        const div = document.getElementById('divSesionesRealtime');
+        if(!div) {
+          console.error("No se encontró divSesionesRealtime");
+          return;
+        }
+        
+        let html = '<h3>Sesiones activas</h3><table style="width:100%"><thead><tr><th>Ingreso</th><th>Cédula</th><th>Nombre</th><th>Estado</th><th>Saldo</th><th>Vehículos</th></tr></thead><tbody>';
+        if(!sesiones || !sesiones.length){
+          html += '<tr><td colspan="6" style="text-align:center;color:#888">Sin sesiones</td></tr>';
+        } else {
+          sesiones.forEach(s => {
+            const fechaIngreso = s.fechaIngreso || 'N/A';
+            const cedula = s.cedulaPropietario || 'N/A';
+            const nombre = s.nombrePropietario || 'N/A';
+            const estado = s.estadoPropietario || 'N/A';
+            const saldo = s.saldoActual || '0';
+            const vehiculos = s.cantidadVehiculos || 0;
+            html += `<tr><td>${fechaIngreso}</td><td>${cedula}</td><td>${nombre}</td><td>${estado}</td><td>$ ${saldo}</td><td>${vehiculos}</td></tr>`;
+          });
+        }
+        html += '</tbody></table>';
+        div.innerHTML = html;
+        console.log("Sesiones mostradas correctamente");
+      } catch(e) {
+        console.error("Error en mostrar_sesiones:", e);
+        alert("Error al mostrar sesiones: " + e.message);
+      }
+    }
+
+    // Total de tránsitos (SSE)
+    function mostrar_totalTransitos(total){
+      const el = document.getElementById('spanTotalTransitos');
+      if(el) el.textContent = total;
     }
 
     // Función para cargar lista de puestos

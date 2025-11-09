@@ -11,8 +11,21 @@ import java.util.List;
 
 import obligatorio.obligatorio.Controladores.Respuesta;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
+import obligatorio.obligatorio.observador.Observable;
 
-public class Fachada {
+/**
+ * Fachada del sistema: punto único de acceso y único Observable.
+ * Centraliza los avisos de eventos del dominio hacia los observadores (controladores en sesión, etc.).
+ */
+public class Fachada extends Observable {
+    /** Eventos expuestos para los observadores. */
+    public enum Eventos {
+        cambioListaSesiones,
+        transitoRegistrado,
+        saldoActualizado,
+        notificacionesActualizadas
+    }
+
     private static final Fachada INST = new Fachada();
     public static Fachada getInstancia() { return INST; }
     private Fachada() {}
@@ -20,29 +33,64 @@ public class Fachada {
     private final SistemaAcceso sAcceso = new SistemaAcceso();
     private final SistemaTablero sTablero = new SistemaTablero();
 
-    public void registrarTransito(Transito t) { sAcceso.registrarTransito(t); }
+    /** Registrar un tránsito y avisar a los observadores. */
+    public void registrarTransito(Transito t) {
+        sAcceso.registrarTransito(t);
+        avisar(Eventos.transitoRegistrado);
+    }
     public List<Transito> getTransitos() { return sAcceso.getTransitos(); }
 
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
                                    BigDecimal saldo, BigDecimal saldoMin, Estado estado)
-            throws ObligatorioException { sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin, estado); }
+            throws ObligatorioException {
+        sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin, estado);
+        // Podría disparar evento de cambio de sesiones si se refleja en vistas de administración
+    }
 
-    public void registrarPropietario(Propietario p) throws ObligatorioException { sAcceso.agregarPropietario(p); }
+    public void registrarPropietario(Propietario p) throws ObligatorioException {
+        sAcceso.agregarPropietario(p);
+    }
 
     public void agregarAdministrador(String cedula, String pwd, String nombreCompleto)
-            throws ObligatorioException { sAcceso.agregarAdministrador(cedula, pwd, nombreCompleto); }
+            throws ObligatorioException {
+        sAcceso.agregarAdministrador(cedula, pwd, nombreCompleto);
+    }
 
-    public Sesion loginPropietario(String cedula, String pwd) throws ObligatorioException { return sAcceso.loginPropietario(cedula, pwd); }
+    public Sesion loginPropietario(String cedula, String pwd) throws ObligatorioException {
+        Sesion s = sAcceso.loginPropietario(cedula, pwd);
+        System.out.println("🔑 Login propietario: " + s.getPropietario().getNombreCompleto() + " - Avisando cambioListaSesiones");
+        avisar(Eventos.cambioListaSesiones);
+        return s;
+    }
 
-    public Administrador loginAdministrador(String cedula, String pwd) throws ObligatorioException { return sAcceso.loginAdministrador(cedula, pwd); }
+    public Administrador loginAdministrador(String cedula, String pwd) throws ObligatorioException {
+        Administrador a = sAcceso.loginAdministrador(cedula, pwd);
+        avisar(Eventos.cambioListaSesiones);
+        return a;
+    }
 
     public List<Sesion> getSesiones() { return sAcceso.getSesiones(); }
-    public void logout(Sesion s) { sAcceso.logout(s); }
-    public void logoutAdministrador(String cedula) { sAcceso.logoutAdministrador(cedula); }
-    public void recargarSaldo(Propietario p, BigDecimal monto) throws ObligatorioException { sAcceso.recargarSaldo(p, monto); }
+    public void logout(Sesion s) {
+        sAcceso.logout(s);
+        System.out.println("🚪 Logout propietario - Avisando cambioListaSesiones");
+        avisar(Eventos.cambioListaSesiones);
+    }
+    public void logoutAdministrador(String cedula) {
+        sAcceso.logoutAdministrador(cedula);
+        avisar(Eventos.cambioListaSesiones);
+    }
+    public void recargarSaldo(Propietario p, BigDecimal monto) throws ObligatorioException {
+        sAcceso.recargarSaldo(p, monto);
+        avisar(Eventos.saldoActualizado);
+        avisar(Eventos.notificacionesActualizadas);
+    }
 
     public List<Respuesta> armarRespuestasTablero(Propietario p) { return sTablero.armarRespuestasTablero(p); }
-    public int borrarNotificaciones(Propietario p) { return sTablero.borrarNotificaciones(p); }
+    public int borrarNotificaciones(Propietario p) {
+        int borradas = sTablero.borrarNotificaciones(p);
+        avisar(Eventos.notificacionesActualizadas);
+        return borradas;
+    }
 
     // Métodos para emular tránsito
     public void agregarPuesto(Puesto p) throws ObligatorioException { sAcceso.agregarPuesto(p); }
@@ -51,8 +99,14 @@ public class Fachada {
     public List<TarifaDTO> getTarifasPorPuesto(String nombrePuesto) throws ObligatorioException {
         return sAcceso.getTarifasPorPuesto(nombrePuesto);
     }
-    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora) 
-            throws ObligatorioException { 
-        return sAcceso.emularTransito(matricula, nombrePuesto, fechaHora); 
+    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora)
+            throws ObligatorioException {
+        ResultadoEmulacionDTO dto = sAcceso.emularTransito(matricula, nombrePuesto, fechaHora);
+        System.out.println("🚗 Tránsito emulado - Avisando eventos: transitoRegistrado, saldoActualizado, notificacionesActualizadas");
+        // El método interno ya genera notificaciones (saldo bajo / tránsito). Reflejamos eventos globales:
+        avisar(Eventos.transitoRegistrado);
+        avisar(Eventos.saldoActualizado);
+        avisar(Eventos.notificacionesActualizadas);
+        return dto;
     }
 }

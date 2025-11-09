@@ -25,6 +25,7 @@ import obligatorio.obligatorio.Modelo.modelos.Transito;
 import obligatorio.obligatorio.Modelo.modelos.Vehiculo;
 import obligatorio.obligatorio.observador.SaldoBajoEvento;
 import obligatorio.obligatorio.observador.TransitoRealizadoEvento;
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
 
 public class SistemaAcceso {
     private final List<Propietario> propietarios = new ArrayList<>();
@@ -68,6 +69,8 @@ public class SistemaAcceso {
                     throw new ObligatorioException("Usuario deshabilitado, no puede ingresar al sistema");
                 Sesion s = new Sesion(p);
                 sesiones.add(s);
+                // Aviso centralizado en Fachada (login propietario)
+                Fachada.getInstancia().avisar(Fachada.Eventos.cambioListaSesiones);
                 return s;
             }
         }
@@ -80,6 +83,7 @@ public class SistemaAcceso {
                 if (administradoresLogueados.contains(cedula))
                     throw new ObligatorioException("Ud. ya está logueado");
                 administradoresLogueados.add(cedula);
+                Fachada.getInstancia().avisar(Fachada.Eventos.cambioListaSesiones);
                 return a;
             }
         }
@@ -87,8 +91,14 @@ public class SistemaAcceso {
     }
 
     public List<Sesion> getSesiones() { return sesiones; }
-    public void logout(Sesion s) { sesiones.remove(s); }
-    public void logoutAdministrador(String cedula) { if (cedula != null) administradoresLogueados.remove(cedula); }
+    public void logout(Sesion s) { 
+        sesiones.remove(s); 
+        Fachada.getInstancia().avisar(Fachada.Eventos.cambioListaSesiones);
+    }
+    public void logoutAdministrador(String cedula) { 
+        if (cedula != null) administradoresLogueados.remove(cedula); 
+        Fachada.getInstancia().avisar(Fachada.Eventos.cambioListaSesiones);
+    }
 
     public void recargarSaldo(Propietario p, BigDecimal monto) throws ObligatorioException {
         if (p == null) throw new ObligatorioException("Sesión expirada");
@@ -96,6 +106,8 @@ public class SistemaAcceso {
             throw new ObligatorioException("El monto debe ser mayor que cero");
         p.setSaldoActual(p.getSaldoActual().add(monto));
         p.agregarNotificacion(new Notificacion("Recarga acreditada: $" + monto, LocalDateTime.now()));
+        Fachada.getInstancia().avisar(Fachada.Eventos.saldoActualizado);
+        Fachada.getInstancia().avisar(Fachada.Eventos.notificacionesActualizadas);
     }
 
     public void registrarTransito(Transito t) { if (t != null) transitos.add(t); }
@@ -250,6 +262,8 @@ public class SistemaAcceso {
         Transito transito = new Transito(vehiculo, puesto, tarifa, fechaHora, 
                                         montoBase, montoCobrado, bonificacionAplicada, true);
         transitos.add(transito);
+        // Eventos globales para vistas generales
+        Fachada.getInstancia().avisar(Fachada.Eventos.transitoRegistrado);
 
         // Notificar evento de tránsito realizado (si no es penalizado)
         if (!esPenalizado) {
@@ -257,7 +271,9 @@ public class SistemaAcceso {
         }
 
         // Notificar evento de saldo bajo (siempre se verifica)
-        propietario.avisar(new SaldoBajoEvento(propietario.getSaldoActual()));
+    propietario.avisar(new SaldoBajoEvento(propietario.getSaldoActual()));
+    Fachada.getInstancia().avisar(Fachada.Eventos.saldoActualizado);
+    Fachada.getInstancia().avisar(Fachada.Eventos.notificacionesActualizadas);
 
         // Crear DTO de resultado
         obligatorio.obligatorio.DTO.ResultadoEmulacionDTO resultado = 

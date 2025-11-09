@@ -1,52 +1,50 @@
 /* 
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Other/javascript.js to edit this template
+ * sse.js - Librería para Server-Sent Events
+ * Se asume que está incluida vistaWeb.js
  */
 
-
-//Se asume que esta incluida vistaWeb.js
-//La pagina que incluya esta lib debe cargar esta variable 
-//Para registrar SSE debe ejecutarse siempre antes el inicio de la vista 
+// Variable de configuración (se setea en cada página HTML)
 var urlRegistroSSE = null;
 
-//Esta funcion la llama vistaWeb.js al final del submit de inicio de la vista
-
+// Esta función la llama vistaWeb.js automáticamente después del primer submit
 function primerSubmitFinalizado(){
     registrarSSE();
 }
 
 function registrarSSE(){
-    //LLamada al endpoint para recibir mensajes desde el servidor
-    if (urlRegistroSSE !== null) {
+    // Solo registrar si se configuró la URL
+    if (urlRegistroSSE === null) return;
+    
+    console.log("Registrando SSE en:", urlRegistroSSE);
+    const eventSource = new EventSource(urlRegistroSSE, {withCredentials: true});
+
+    // LLEGA UN MENSAJE DESDE EL SERVIDOR
+    eventSource.onmessage = function (event){
+        try {
+            console.log("📨 Mensaje SSE recibido:", event.data);
+            const json = JSON.parse(event.data);
+            procesarMensajeSSE(json);
+        } catch(e){
+            console.error("❌ Error parseando mensaje SSE:", e, event.data);
+        }
+    };
+
+    // ERROR EN LA CONEXIÓN CON EL SERVIDOR
+    eventSource.onerror = function (event){
+        console.warn("⚠️ Conexión SSE cerrada o error:", event);
+        eventSource.close();
         
-        const eventSource = new EventSource(urlRegistroSSE,{withCredentials: true });
-               
-        //LLEGA UN MENSAJE DESDE EL SERVIDOR!
-        eventSource.onmessage = function (event) {
-            //Se asume que todos los mensajes llegan en formtato JSON
-            json = JSON.parse(event.data); // Convertir el JSON a objeto
-            procesarMensajeSSE(json); 
-        };
-        //ERROR EN LA CONEXION CON EL SERVIDOR
-        eventSource.onerror = function (event) {
-            
-            //En todos los casos se cierra el event source
-            eventSource.close();
-             try {
-                conexionSSECerrada(event);//Metodo que puede estar definido en la pagina que incluya esta lib 
-                                          //para personalizar el manejo del error en la conexion SSE   
-            } catch (e) {
-                //por defecto se "borra" la pagina
-                document.body.innerHTML = '';    
-            }
-            
-            
-        };
-          
-    }
+        try {
+            // Método personalizable en la página que incluye esta lib
+            conexionSSECerrada(event);
+        } catch (e) {
+            // Por defecto solo loguear, NO borrar la página
+            console.error("Conexión SSE cerrada sin handler personalizado");
+        }
+    };
 }
-//Por defecto se asume que los mensajes se reciven via SSE tienen el mismo formato que las respuestas
-//del submit. 
+
+// Por defecto procesa mensajes SSE igual que respuestas de submit
 function procesarMensajeSSE(mensaje){
-        procesarResultadosSubmit(mensaje);
+    procesarResultadosSubmit(mensaje);
 }

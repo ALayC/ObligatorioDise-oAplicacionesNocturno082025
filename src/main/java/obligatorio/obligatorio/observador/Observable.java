@@ -25,6 +25,7 @@ public class Observable {
     public void avisar(Object evento){
 
         ArrayList<Observador> copia = new ArrayList<>(observadores);
+        System.out.println("📢 Observable.avisar(" + evento + ") - Notificando a " + copia.size() + " observadores");
         for(Observador obs:copia){
             obs.actualizar(this, evento);
         }

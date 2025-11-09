@@ -22,7 +22,6 @@ public List<Respuesta> loginPropietario(HttpSession sesionHttp,
                                         @RequestParam String cedula,
                                         @RequestParam String password) throws ObligatorioException {
     Sesion sesion = Fachada.getInstancia().loginPropietario(cedula, password);
-    logoutPropietario(sesionHttp);
     sesionHttp.setAttribute("usuarioPropietario", sesion);
     sesionHttp.setAttribute("propietario", sesion.getPropietario());
 
@@ -42,8 +41,14 @@ public List<Respuesta> loginPropietario(HttpSession sesionHttp,
     public List<Respuesta> logoutPropietario(HttpSession sesionHttp) throws ObligatorioException {
         Object obj = sesionHttp.getAttribute("usuarioPropietario");
         if (obj instanceof Sesion s) {
-            Fachada.getInstancia().logout(s);
+            try {
+                Fachada.getInstancia().logout(s);
+            } catch (Exception e) {
+                // Sesión ya removida, continuar igual
+                System.out.println("⚠️ Sesión ya removida del sistema: " + e.getMessage());
+            }
             sesionHttp.removeAttribute("usuarioPropietario");
+            sesionHttp.removeAttribute("propietario");
         }
         return Respuesta.lista(new Respuesta("paginaLogin", "login.html"));
     }

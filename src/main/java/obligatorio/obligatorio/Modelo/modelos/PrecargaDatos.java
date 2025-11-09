@@ -68,7 +68,7 @@ public final class PrecargaDatos {
         Propietario prop1 = new Propietario("1", "1", "Walter",
                 new BigDecimal("2000.00"), new BigDecimal("500.00"), habilitado);
         Propietario prop2 = new Propietario("2", "2", "josé",
-                new BigDecimal("800.00"), new BigDecimal("200.00"), penalizado);
+                new BigDecimal("800.00"), new BigDecimal("200.00"), habilitado);
 
         propietarios.add(prop1);
         propietarios.add(prop2);

@@ -4,23 +4,43 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.servlet.http.HttpSession;
 import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
+import obligatorio.obligatorio.DTO.SesionDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
-import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
+import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
+import obligatorio.obligatorio.observador.Observable;
+import obligatorio.obligatorio.observador.Observador;
 
+/**
+ * Controlador para CU Emular tránsito + Monitor en tiempo real (SSE).
+ * Actúa como Observador de la Fachada, con scope de sesión (un observador por admin conectado).
+ */
 @RestController
 @RequestMapping("/admin")
-public class ControladorAdmin {
+@Scope("session")
+public class ControladorAdmin implements Observador {
+
+    private final ConexionNavegador conexionNavegador;
+
+    @Autowired
+    public ControladorAdmin(ConexionNavegador conexionNavegador) {
+        this.conexionNavegador = conexionNavegador;
+    }
 
     // Helper para validar sesión
     private Administrador administradorEnSesion(HttpSession sesionHttp) throws ObligatorioException {
@@ -31,17 +51,27 @@ public class ControladorAdmin {
         throw new ObligatorioException("Sesión expirada");
     }
 
-    @PostMapping("/cargarEmulador")
-    public Object cargarEmulador(HttpSession sesionHttp) {
+    /**
+     * Endpoint inicial que registra al controlador como observador y devuelve datos base.
+     */
+    @PostMapping("/vistaConectada")
+    public Object vistaConectada(HttpSession sesionHttp) {
         try {
             Administrador admin = administradorEnSesion(sesionHttp);
+            System.out.println("🔐 Admin " + admin.getNombreCompleto() + " conectó vista");
             
             // Obtener lista de puestos como DTOs desde el sistema
             List<PuestoDTO> puestosDTO = Fachada.getInstancia().getPuestosDTO();
+            List<SesionDTO> sesionesDTO = SesionDTO.lista(Fachada.getInstancia().getSesiones());
+
+            // Registrar como observador (única vez por sesión)
+            Fachada.getInstancia().agregarObservador(this);
+            System.out.println("✅ ControladorAdmin registrado como observador. Total observadores: " + Fachada.getInstancia().getObservadores().size());
 
             return Respuesta.lista(
                 new Respuesta("infoAdmin", admin.getNombreCompleto()),
-                new Respuesta("puestos", puestosDTO)
+                new Respuesta("puestos", puestosDTO),
+                new Respuesta("sesiones", sesionesDTO)
             );
             
         } catch (ObligatorioException e) {
@@ -94,5 +124,67 @@ public class ControladorAdmin {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al procesar la solicitud: " + e.getMessage());
         }
+    }
+
+    /** Registrar conexión SSE del navegador. */
+    @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter registrarSSE(HttpSession sesionHttp) {
+        try {
+            Administrador admin = administradorEnSesion(sesionHttp);
+            System.out.println("📡 Registrando SSE para admin: " + admin.getNombreCompleto() + " | Session ID: " + sesionHttp.getId());
+            conexionNavegador.conectarSSE();
+            System.out.println("✅ SSE conectado. Estado: " + conexionNavegador.estaConectado());
+            return conexionNavegador.getConexionSSE();
+        } catch (ObligatorioException e) {
+            System.out.println("❌ Error al registrar SSE: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Vista cerrada: quitarse como observador para evitar memory leaks. */
+    @PostMapping("/vistaCerrada")
+    public void vistaCerrada(HttpSession sesionHttp) {
+        System.out.println("👋 Vista cerrada. Quitando observador. Session ID: " + sesionHttp.getId());
+        Fachada.getInstancia().quitarObservador(this);
+        conexionNavegador.cerrarConexion();
+        System.out.println("✅ Observador removido. Total observadores: " + Fachada.getInstancia().getObservadores().size());
+    }
+
+    /** Implementación del patrón Observador: recibe eventos globales de la Fachada. */
+    @Override
+    public void actualizar(Observable origen, Object evento) {
+        System.out.println("🔔 ControladorAdmin.actualizar() recibió evento: " + evento + " | Conexión SSE: " + (conexionNavegador != null && conexionNavegador.estaConectado()));
+        
+        if(!(evento instanceof Fachada.Eventos)) return;
+        Fachada.Eventos ev = (Fachada.Eventos) evento;
+        switch (ev) {
+            case cambioListaSesiones -> enviarActualizacionSesiones();
+            case transitoRegistrado -> enviarActualizacionTransitos();
+            case saldoActualizado, notificacionesActualizadas -> enviarActualizacionSesiones();
+            default -> { }
+        }
+    }
+
+    private void enviarActualizacionSesiones(){
+        System.out.println("📤 Intentando enviar actualización de sesiones...");
+        if(conexionNavegador == null || !conexionNavegador.estaConectado()) {
+            System.out.println("⚠️ No hay conexión SSE activa para este controlador");
+            return;
+        }
+        List<SesionDTO> sesionesDTO = SesionDTO.lista(Fachada.getInstancia().getSesiones());
+        System.out.println("✅ Enviando " + sesionesDTO.size() + " sesiones vía SSE");
+        conexionNavegador.enviarJSON(Respuesta.lista(new Respuesta("sesiones", sesionesDTO)));
+    }
+
+    private void enviarActualizacionTransitos(){
+        System.out.println("📤 Intentando enviar actualización de tránsitos...");
+        if(conexionNavegador == null || !conexionNavegador.estaConectado()) {
+            System.out.println("⚠️ No hay conexión SSE activa para este controlador");
+            return;
+        }
+        // Por simplicidad se envía la cantidad total de tránsitos
+        int total = Fachada.getInstancia().getTransitos().size();
+        System.out.println("✅ Enviando total tránsitos: " + total);
+        conexionNavegador.enviarJSON(Respuesta.lista(new Respuesta("totalTransitos", total)));
     }
 }
