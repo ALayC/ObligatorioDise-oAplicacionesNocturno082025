@@ -41,7 +41,7 @@ public class NotificadorSaldoBajo implements Observador {
                     propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
                     
                     // Si hay conexión SSE, enviar notificación en tiempo real
-                    if (conexionNavegador != null && conexionNavegador.estaConectado()) {
+                    if (conexionNavegador != null) {
                         Map<String, Object> notif = new HashMap<>();
                         notif.put("tipo", "SALDO_BAJO");
                         notif.put("mensaje", mensaje);

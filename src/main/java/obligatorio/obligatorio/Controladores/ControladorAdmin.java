@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,8 +34,6 @@ import obligatorio.obligatorio.observador.Observador;
 public class ControladorAdmin implements Observador {
 
     private final ConexionNavegador conexionNavegador;
-
-    @Autowired
     public ControladorAdmin(ConexionNavegador conexionNavegador) {
         this.conexionNavegador = conexionNavegador;
     }
@@ -57,14 +54,13 @@ public class ControladorAdmin implements Observador {
     public Object vistaConectada(HttpSession sesionHttp) {
         try {
             Administrador admin = administradorEnSesion(sesionHttp);
-            System.out.println("🔐 Admin " + admin.getNombreCompleto() + " conectó vista");
+
             
             // Obtener lista de puestos como DTOs desde el sistema
             List<PuestoDTO> puestosDTO = Fachada.getInstancia().getPuestosDTO();
 
             // Registrar como observador (única vez por sesión)
             Fachada.getInstancia().agregarObservador(this);
-            System.out.println("✅ ControladorAdmin registrado como observador. Total observadores: " + Fachada.getInstancia().getObservadores().size());
 
             return Respuesta.lista(
                 new Respuesta("infoAdmin", admin.getNombreCompleto()),
@@ -128,12 +124,9 @@ public class ControladorAdmin implements Observador {
     public SseEmitter registrarSSE(HttpSession sesionHttp) {
         try {
             Administrador admin = administradorEnSesion(sesionHttp);
-            System.out.println("📡 Registrando SSE para admin: " + admin.getNombreCompleto() + " | Session ID: " + sesionHttp.getId());
             conexionNavegador.conectarSSE();
-            System.out.println("✅ SSE conectado. Estado: " + conexionNavegador.estaConectado());
             return conexionNavegador.getConexionSSE();
         } catch (ObligatorioException e) {
-            System.out.println("❌ Error al registrar SSE: " + e.getMessage());
             return null;
         }
     }
@@ -141,16 +134,13 @@ public class ControladorAdmin implements Observador {
     /** Vista cerrada: quitarse como observador para evitar memory leaks. */
     @PostMapping("/vistaCerrada")
     public void vistaCerrada(HttpSession sesionHttp) {
-        System.out.println("👋 Vista cerrada. Quitando observador. Session ID: " + sesionHttp.getId());
         Fachada.getInstancia().quitarObservador(this);
         conexionNavegador.cerrarConexion();
-        System.out.println("✅ Observador removido. Total observadores: " + Fachada.getInstancia().getObservadores().size());
     }
 
     /** Implementación del patrón Observador: recibe eventos globales de la Fachada. */
     @Override
     public void actualizar(Object evento, Observable origen) {
-        System.out.println("🔔 ControladorAdmin.actualizar() recibió evento: " + evento + " | Conexión SSE: " + (conexionNavegador != null && conexionNavegador.estaConectado()));
         
         if(!(evento instanceof Fachada.Eventos)) return;
         Fachada.Eventos ev = (Fachada.Eventos) evento;
@@ -161,14 +151,7 @@ public class ControladorAdmin implements Observador {
     }
 
     private void enviarActualizacionTransitos(){
-        System.out.println("📤 Intentando enviar actualización de tránsitos...");
-        if(conexionNavegador == null || !conexionNavegador.estaConectado()) {
-            System.out.println("⚠️ No hay conexión SSE activa para este controlador");
-            return;
-        }
-        // Por simplicidad se envía la cantidad total de tránsitos
         int total = Fachada.getInstancia().getTransitos().size();
-        System.out.println("✅ Enviando total tránsitos: " + total);
         conexionNavegador.enviarJSON(Respuesta.lista(new Respuesta("totalTransitos", total)));
     }
 }

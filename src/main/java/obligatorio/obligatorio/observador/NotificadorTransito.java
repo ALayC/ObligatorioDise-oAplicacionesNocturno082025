@@ -38,16 +38,9 @@ public class NotificadorTransito implements Observador {
                                " con el vehículo " + transitoEvento.getVehiculo().getMatricula();
                 
                 propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
-                
-                System.out.println("🚗 NotificadorTransito.actualizar() - Propietario: " + propietario.getNombreCompleto());
-                System.out.println("   Mensaje: " + mensaje);
-                System.out.println("   ConexionNavegador es null: " + (conexionNavegador == null));
-                if (conexionNavegador != null) {
-                    System.out.println("   ConexionNavegador.estaConectado(): " + conexionNavegador.estaConectado());
-                }
-                
+
                 // Si hay conexión SSE, enviar notificación en tiempo real
-                if (conexionNavegador != null && conexionNavegador.estaConectado()) {
+                if (conexionNavegador != null) {
                     Map<String, Object> notif = new HashMap<>();
                     notif.put("tipo", "TRANSITO_REALIZADO");
                     notif.put("mensaje", mensaje);
