@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -26,6 +27,7 @@ import obligatorio.obligatorio.observador.Observador;
 
 @RestController
 @RequestMapping("/propietario")
+@Scope("session")
 public class CasoUsoTableroPropietario {
 
     @Autowired
