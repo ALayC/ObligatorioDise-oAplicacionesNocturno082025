@@ -1,6 +1,5 @@
 package obligatorio.obligatorio.Controladores;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -144,17 +142,6 @@ public Object cargarTablero(HttpSession sesionHttp) {
         }
     }
 
-    @PostMapping("/recargarSaldo")
-    public Object recargarSaldo(HttpSession sesionHttp, @RequestParam BigDecimal monto) {
-        try {
-            Propietario p = propietarioEnSesion(sesionHttp);
-            Fachada.getInstancia().recargarSaldo(p, monto);
-            return Fachada.getInstancia().armarRespuestasTablero(p);
-        } catch (ObligatorioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-    
     /**
      * Método para limpiar el observador cuando se cierra la conexión.
      * Debe ser llamado cuando el usuario hace logout o cierra la vista.
