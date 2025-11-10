@@ -21,14 +21,13 @@ import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
 import obligatorio.obligatorio.Modelo.modelos.Propietario;
 import obligatorio.obligatorio.Modelo.modelos.Sesion;
-import obligatorio.obligatorio.observador.NotificadorSaldoBajo;
-import obligatorio.obligatorio.observador.NotificadorTransito;
+import obligatorio.obligatorio.observador.Observable;
 import obligatorio.obligatorio.observador.Observador;
 
 @RestController
 @RequestMapping("/propietario")
 @Scope("session")
-public class CasoUsoTableroPropietario {
+public class CasoUsoTableroPropietario implements Observador {
 
     @Autowired
     private ConexionNavegador conexionNavegador;
@@ -48,58 +47,63 @@ public class CasoUsoTableroPropietario {
     @GetMapping(value = "/sse/conectar", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<SseEmitter> conectarSSE(HttpSession sesionHttp) {
         try {
-            Propietario propietario = propietarioEnSesion(sesionHttp);
-            
-            System.out.println("📡 Solicitando conexión SSE para: " + propietario.getNombreCompleto() 
-                + " | Session ID: " + sesionHttp.getId());
-            
+            Propietario propietario = propietarioEnSesion(sesionHttp);         
             // Establecer conexión SSE
-            conexionNavegador.conectarSSE();
-            
-            // Registrar los observadores con la conexión SSE (solo si no están ya registrados)
-            // Buscar si ya existen observadores de estos tipos
-            boolean tieneNotificadorTransito = false;
-            boolean tieneNotificadorSaldoBajo = false;
-            
-            for (Observador obs : propietario.getObservadores()) {
-                if (obs instanceof NotificadorTransito) {
-                    tieneNotificadorTransito = true;
-                    ((NotificadorTransito) obs).setConexionNavegador(conexionNavegador);
-                    System.out.println("🔄 NotificadorTransito actualizado con nueva conexión");
-                } else if (obs instanceof NotificadorSaldoBajo) {
-                    tieneNotificadorSaldoBajo = true;
-                    ((NotificadorSaldoBajo) obs).setConexionNavegador(conexionNavegador);
-                    System.out.println("🔄 NotificadorSaldoBajo actualizado con nueva conexión");
-                }
+            conexionNavegador.conectarSSE();        
+            // Registrar este controlador como observador del propietario (si no está ya registrado)
+            if (!propietario.getObservadores().contains(this)) {
+                propietario.agregarObservador(this);
             }
-            
-            // Si no existen, crearlos y agregarlos
-            if (!tieneNotificadorTransito) {
-                propietario.agregarObservador(new NotificadorTransito(conexionNavegador));
-                System.out.println("➕ NotificadorTransito agregado");
-            }
-            if (!tieneNotificadorSaldoBajo) {
-                propietario.agregarObservador(new NotificadorSaldoBajo(conexionNavegador));
-                System.out.println("➕ NotificadorSaldoBajo agregado");
-            }
-            
-            System.out.println("✅ Conexión SSE establecida para " + propietario.getNombreCompleto() 
-                + " | Total observadores: " + propietario.getObservadores().size());
-            
-            // Configurar headers para mejor compatibilidad cross-browser (especialmente Chrome)
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.TEXT_EVENT_STREAM);
             headers.setCacheControl("no-cache, no-transform");
             headers.set("Connection", "keep-alive"); // CRÍTICO para Chrome
-            headers.set("X-Accel-Buffering", "no"); // Disable nginx buffering
-            
+            headers.set("X-Accel-Buffering", "no"); // Disable nginx buffering       
             return ResponseEntity.ok()
                 .headers(headers)
                 .body(conexionNavegador.getConexionSSE());
             
         } catch (ObligatorioException e) {
-            System.out.println("❌ Error al establecer SSE: " + e.getMessage());
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Implementación del patrón Observador: recibe eventos del Propietario.
+     * Similar al ejemplo de Agenda, usa switch sobre el enum de eventos.
+     */
+    @Override
+    public void actualizar(Object evento, Observable origen) {
+        // Verificar que el evento sea del tipo correcto y el origen sea Propietario
+        if (!(evento instanceof Propietario.Eventos)) return;
+        if (!(origen instanceof Propietario)) return;
+        
+        Propietario.Eventos ev = (Propietario.Eventos) evento;
+        Propietario propietario = (Propietario) origen;
+        
+        // Switch sobre el enum (estilo Agenda)
+        switch (ev) {
+            case TRANSITO_REALIZADO -> enviarNotificacionTransito(propietario);
+        }
+    }
+    
+    /**
+     * Envía notificación de tránsito realizado vía SSE.
+     */
+    private void enviarNotificacionTransito(Propietario propietario) {
+        var notificaciones = propietario.getNotificaciones();
+        if (!notificaciones.isEmpty()) {
+            var ultimaNotificacion = notificaciones.get(notificaciones.size() - 1);
+            
+            // Crear estructura JSON con tipo de notificación
+            java.util.Map<String, Object> notificacion = new java.util.HashMap<>();
+            notificacion.put("tipo", "TRANSITO_REALIZADO");
+            notificacion.put("mensaje", ultimaNotificacion.getMensaje());
+            notificacion.put("fechaHora", ultimaNotificacion.getFechaHora().toString());
+            
+            if (conexionNavegador != null) {
+                conexionNavegador.enviarJSON(notificacion);
+            }
         }
     }
 
@@ -146,6 +150,23 @@ public Object cargarTablero(HttpSession sesionHttp) {
             Propietario p = propietarioEnSesion(sesionHttp);
             Fachada.getInstancia().recargarSaldo(p, monto);
             return Fachada.getInstancia().armarRespuestasTablero(p);
+        } catch (ObligatorioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    /**
+     * Método para limpiar el observador cuando se cierra la conexión.
+     * Debe ser llamado cuando el usuario hace logout o cierra la vista.
+     */
+    @PostMapping("/desconectar")
+    public ResponseEntity<String> desconectar(HttpSession sesionHttp) {
+        try {
+            Propietario propietario = propietarioEnSesion(sesionHttp);
+            propietario.quitarObservador(this);
+            conexionNavegador.cerrarConexion();
+            System.out.println("👋 Observador desregistrado y conexión SSE cerrada");
+            return ResponseEntity.ok("Desconectado");
         } catch (ObligatorioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

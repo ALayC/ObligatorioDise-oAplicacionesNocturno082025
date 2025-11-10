@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.modelos.AsignacionBonificacion;
 import obligatorio.obligatorio.Modelo.modelos.Bonificacion;
@@ -23,9 +24,6 @@ import obligatorio.obligatorio.Modelo.modelos.Sesion;
 import obligatorio.obligatorio.Modelo.modelos.Tarifa;
 import obligatorio.obligatorio.Modelo.modelos.Transito;
 import obligatorio.obligatorio.Modelo.modelos.Vehiculo;
-import obligatorio.obligatorio.observador.SaldoBajoEvento;
-import obligatorio.obligatorio.observador.TransitoRealizadoEvento;
-import obligatorio.obligatorio.Modelo.fachada.Fachada;
 
 public class SistemaAcceso {
     private final List<Propietario> propietarios = new ArrayList<>();
@@ -267,13 +265,13 @@ public class SistemaAcceso {
 
         // Notificar evento de tránsito realizado (si no es penalizado)
         if (!esPenalizado) {
-            propietario.avisar(new TransitoRealizadoEvento(vehiculo, puesto, fechaHora));
+            propietario.avisar(Propietario.Eventos.TRANSITO_REALIZADO);
         }
 
         // Notificar evento de saldo bajo (siempre se verifica)
-    propietario.avisar(new SaldoBajoEvento(propietario.getSaldoActual()));
-    Fachada.getInstancia().avisar(Fachada.Eventos.saldoActualizado);
-    Fachada.getInstancia().avisar(Fachada.Eventos.notificacionesActualizadas);
+        propietario.avisar(Propietario.Eventos.SALDO_BAJO);
+        Fachada.getInstancia().avisar(Fachada.Eventos.saldoActualizado);
+        Fachada.getInstancia().avisar(Fachada.Eventos.notificacionesActualizadas);
 
         // Crear DTO de resultado
         obligatorio.obligatorio.DTO.ResultadoEmulacionDTO resultado = 

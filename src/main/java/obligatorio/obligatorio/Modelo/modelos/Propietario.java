@@ -11,6 +11,12 @@ import java.util.Set;
 import obligatorio.obligatorio.observador.Observable;
 
 public final class Propietario extends Observable {
+    
+    public enum Eventos { 
+        TRANSITO_REALIZADO, 
+        SALDO_BAJO 
+    }
+    
     private String cedula;
     private String password;
     private String nombreCompleto;
