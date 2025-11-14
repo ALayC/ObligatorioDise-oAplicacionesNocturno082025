@@ -4,6 +4,7 @@ import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
 import obligatorio.obligatorio.Modelo.sistemas.SistemaAcceso;
 import obligatorio.obligatorio.Modelo.sistemas.SistemaTablero;
+import obligatorio.obligatorio.Modelo.sistemas.SistemaTransito;
 import obligatorio.obligatorio.Modelo.modelos.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,13 +33,14 @@ public class Fachada extends Observable {
 
     private final SistemaAcceso sAcceso = new SistemaAcceso();
     private final SistemaTablero sTablero = new SistemaTablero();
+    private final SistemaTransito sTransito = new SistemaTransito(sAcceso);
 
     /** Registrar un tránsito y avisar a los observadores. */
     public void registrarTransito(Transito t) {
-        sAcceso.registrarTransito(t);
+        sTransito.registrarTransito(t);
         avisar(Eventos.transitoRegistrado);
     }
-    public List<Transito> getTransitos() { return sAcceso.getTransitos(); }
+    public List<Transito> getTransitos() { return sTransito.getTransitos(); }
 
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
                                    BigDecimal saldo, BigDecimal saldoMin, Estado estado)
@@ -93,15 +95,15 @@ public class Fachada extends Observable {
     }
 
     // Métodos para emular tránsito
-    public void agregarPuesto(Puesto p) throws ObligatorioException { sAcceso.agregarPuesto(p); }
-    public List<Puesto> getPuestos() { return sAcceso.getPuestos(); }
-    public List<PuestoDTO> getPuestosDTO() { return sAcceso.getPuestosDTO(); }
+    public void agregarPuesto(Puesto p) throws ObligatorioException { sTransito.agregarPuesto(p); }
+    public List<Puesto> getPuestos() { return sTransito.getPuestos(); }
+    public List<PuestoDTO> getPuestosDTO() { return sTransito.getPuestosDTO(); }
     public List<TarifaDTO> getTarifasPorPuesto(String nombrePuesto) throws ObligatorioException {
-        return sAcceso.getTarifasPorPuesto(nombrePuesto);
+        return sTransito.getTarifasPorPuesto(nombrePuesto);
     }
     public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora)
             throws ObligatorioException {
-        ResultadoEmulacionDTO dto = sAcceso.emularTransito(matricula, nombrePuesto, fechaHora);
+    ResultadoEmulacionDTO dto = sTransito.emularTransito(matricula, nombrePuesto, fechaHora);
         System.out.println("🚗 Tránsito emulado - Avisando eventos: transitoRegistrado, saldoActualizado, notificacionesActualizadas");
         // El método interno ya genera notificaciones (saldo bajo / tránsito). Reflejamos eventos globales:
         avisar(Eventos.transitoRegistrado);

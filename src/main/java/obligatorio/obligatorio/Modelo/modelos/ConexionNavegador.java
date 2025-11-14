@@ -1,10 +1,16 @@
-package obligatorio.obligatorio.Controladores;
+package obligatorio.obligatorio.Modelo.modelos;
+
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+/**
+ *
+ * @author PC
+ */
 
 @Component
 @Scope("session")
@@ -55,4 +61,7 @@ public class ConexionNavegador  {
             cerrarConexion();
 	}
     }
+    
+  
+
 }

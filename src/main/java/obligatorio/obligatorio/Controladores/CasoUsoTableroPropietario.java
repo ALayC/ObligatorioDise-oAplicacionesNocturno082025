@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.servlet.http.HttpSession;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
+import obligatorio.obligatorio.Modelo.modelos.ConexionNavegador;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
 import obligatorio.obligatorio.Modelo.modelos.Propietario;
 import obligatorio.obligatorio.Modelo.modelos.Sesion;
@@ -82,6 +83,7 @@ public class CasoUsoTableroPropietario implements Observador {
         // Switch sobre el enum (estilo Agenda)
         switch (ev) {
             case TRANSITO_REALIZADO -> enviarNotificacionTransito(propietario);
+            case SALDO_BAJO -> enviarNotificacionSaldoBajo(propietario);
         }
     }
     
@@ -98,6 +100,27 @@ public class CasoUsoTableroPropietario implements Observador {
             notificacion.put("tipo", "TRANSITO_REALIZADO");
             notificacion.put("mensaje", ultimaNotificacion.getMensaje());
             notificacion.put("fechaHora", ultimaNotificacion.getFechaHora().toString());
+            
+            if (conexionNavegador != null) {
+                conexionNavegador.enviarJSON(notificacion);
+            }
+        }
+    }
+
+    /**
+     * Envía notificación de saldo bajo vía SSE.
+     */
+    private void enviarNotificacionSaldoBajo(Propietario propietario) {
+        var notificaciones = propietario.getNotificaciones();
+        if (!notificaciones.isEmpty()) {
+            var ultimaNotificacion = notificaciones.get(notificaciones.size() - 1);
+            
+            // Crear estructura JSON con tipo de notificación
+            java.util.Map<String, Object> notificacion = new java.util.HashMap<>();
+            notificacion.put("tipo", "SALDO_BAJO");
+            notificacion.put("mensaje", ultimaNotificacion.getMensaje());
+            notificacion.put("fechaHora", ultimaNotificacion.getFechaHora().toString());
+            notificacion.put("saldoActual", propietario.getSaldoActual().toString());
             
             if (conexionNavegador != null) {
                 conexionNavegador.enviarJSON(notificacion);

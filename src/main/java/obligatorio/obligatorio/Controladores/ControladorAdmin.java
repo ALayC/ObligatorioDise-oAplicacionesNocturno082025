@@ -4,15 +4,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.servlet.http.HttpSession;
 import obligatorio.obligatorio.DTO.PuestoDTO;
@@ -20,6 +18,7 @@ import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
+import obligatorio.obligatorio.Modelo.modelos.ConexionNavegador;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
 import obligatorio.obligatorio.observador.Observable;
 import obligatorio.obligatorio.observador.Observador;
@@ -33,9 +32,10 @@ import obligatorio.obligatorio.observador.Observador;
 @Scope("session")
 public class ControladorAdmin implements Observador {
 
-    private final ConexionNavegador conexionNavegador;
-    public ControladorAdmin(ConexionNavegador conexionNavegador) {
-        this.conexionNavegador = conexionNavegador;
+    private ConexionNavegador conexionVista;
+    
+    public ControladorAdmin(@Autowired ConexionNavegador conexionVista) {
+        this.conexionVista = conexionVista;
     }
 
     // Helper para validar sesión
@@ -119,39 +119,36 @@ public class ControladorAdmin implements Observador {
         }
     }
 
-    /** Registrar conexión SSE del navegador. */
-    @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter registrarSSE(HttpSession sesionHttp) {
-        try {
-            Administrador admin = administradorEnSesion(sesionHttp);
-            conexionNavegador.conectarSSE();
-            return conexionNavegador.getConexionSSE();
-        } catch (ObligatorioException e) {
-            return null;
-        }
-    }
+    // /** Registrar conexión SSE del navegador. */
+    // @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    // public SseEmitter registrarSSE(HttpSession sesionHttp) {
+    //     try {
+    //         Administrador admin = administradorEnSesion(sesionHttp);
+    //         conexionNavegador.conectarSSE();
+    //         return conexionNavegador.getConexionSSE();
+    //     } catch (ObligatorioException e) {
+    //         return null;
+    //     }
+    // }
 
-    /** Vista cerrada: quitarse como observador para evitar memory leaks. */
-    @PostMapping("/vistaCerrada")
-    public void vistaCerrada(HttpSession sesionHttp) {
-        Fachada.getInstancia().quitarObservador(this);
-        conexionNavegador.cerrarConexion();
-    }
+    // /** Vista cerrada: quitarse como observador para evitar memory leaks. */
+    // @PostMapping("/vistaCerrada")
+    // public void vistaCerrada(HttpSession sesionHttp) {
+    //     Fachada.getInstancia().quitarObservador(this);
+    //     conexionNavegador.cerrarConexion();
+    // }
 
     /** Implementación del patrón Observador: recibe eventos globales de la Fachada. */
     @Override
     public void actualizar(Object evento, Observable origen) {
         
-        if(!(evento instanceof Fachada.Eventos)) return;
-        Fachada.Eventos ev = (Fachada.Eventos) evento;
-        switch (ev) {
-            case transitoRegistrado -> enviarActualizacionTransitos();
-            default -> { }
-        }
+        // if(!(evento instanceof Fachada.Eventos)) return;
+        // Fachada.Eventos ev = (Fachada.Eventos) evento;
+        // switch (ev) {
+        //     case transitoRegistrado -> enviarActualizacionTransitos();
+        //     default -> { }
+        // }
     }
 
-    private void enviarActualizacionTransitos(){
-        int total = Fachada.getInstancia().getTransitos().size();
-        conexionNavegador.enviarJSON(Respuesta.lista(new Respuesta("totalTransitos", total)));
-    }
+
 }
