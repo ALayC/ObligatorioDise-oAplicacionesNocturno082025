@@ -98,7 +98,7 @@ public class SistemaTransito {
     }
 
     private void validarEstadoPropietario(Propietario propietario) throws ObligatorioException {
-        String estado = propietario.getEstadoActual() != null ? propietario.getEstadoActual().getNombre() : null;
+        String estado = propietario.getEstadoPropietario() != null ? propietario.getEstadoPropietario().getNombre() : null;
         if (estado == null) return; // Sin estado definido se permite (según lógica actual)
         if (estado.equalsIgnoreCase("Deshabilitado"))
             throw new ObligatorioException("El propietario del vehículo está deshabilitado, no puede realizar tránsitos");
@@ -121,7 +121,7 @@ public class SistemaTransito {
     }
 
     private boolean esPenalizado(Propietario propietario) {
-        String estado = propietario.getEstadoActual() != null ? propietario.getEstadoActual().getNombre() : null;
+        String estado = propietario.getEstadoPropietario() != null ? propietario.getEstadoPropietario().getNombre() : null;
         return estado != null && estado.equalsIgnoreCase("Penalizado");
     }
 
@@ -191,7 +191,7 @@ public class SistemaTransito {
                                                       Bonificacion bonificacion, BigDecimal montoCobrado) {
         ResultadoEmulacionDTO dto = new ResultadoEmulacionDTO();
         dto.setNombrePropietario(propietario.getNombreCompleto());
-        dto.setEstado(propietario.getEstadoActual().getNombre());
+        dto.setEstado(propietario.getEstadoPropietario().getNombre());
         dto.setCategoria(vehiculo.getCategoria().getNombre());
         dto.setBonificacion(bonificacion != null ? bonificacion.getNombre() : null);
         dto.setCostoTransito(montoCobrado);

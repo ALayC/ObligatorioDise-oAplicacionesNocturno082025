@@ -14,7 +14,7 @@ public final class PrecargaDatos {
     private final List<Tarifa> tarifas = new ArrayList<>();
     private final List<Vehiculo> vehiculos = new ArrayList<>();
     private final List<Bonificacion> bonificaciones = new ArrayList<>();
-    private final List<Estado> estados = new ArrayList<>();
+        // Eliminado: private final List<Estado> estados = new ArrayList<>();
     private final List<AsignacionBonificacion> asignaciones = new ArrayList<>();
 
     // Solo para referencia/depuración (la fachada es la fuente de verdad de tránsitos)
@@ -34,23 +34,15 @@ public final class PrecargaDatos {
     public List<Tarifa> getTarifas() { return tarifas; }
     public List<Vehiculo> getVehiculos() { return vehiculos; }
     public List<Bonificacion> getBonificaciones() { return bonificaciones; }
-    public List<Estado> getEstados() { return estados; }
+        // Eliminado: public List<Estado> getEstados() { return estados; }
     public List<AsignacionBonificacion> getAsignaciones() { return asignaciones; }
     public List<Notificacion> getNotificaciones() { return notificaciones; }
     public List<Transito> getTransitos() { return transitos; }
 
     private void cargar() throws ObligatorioException {
         Fachada f = Fachada.getInstancia();
-
-        // ----- Estados -----
-        Estado habilitado   = new Estado("Habilitado");
-        Estado deshabilitado= new Estado("Deshabilitado");
-        Estado suspendido   = new Estado("Suspendido");
-        Estado penalizado   = new Estado("Penalizado");
-        estados.add(habilitado);
-        estados.add(deshabilitado);
-        estados.add(suspendido);
-        estados.add(penalizado);
+        
+        // ----- Estados eliminados: ahora se usan los estados concretos directamente
 
         // ----- Administradores -----
         Administrador admin1 = new Administrador("a", "a", "Usuario Administrador");
@@ -64,9 +56,13 @@ public final class PrecargaDatos {
 
         // ----- Propietarios (aún sin registrar en SistemaAcceso) -----
         Propietario prop1 = new Propietario("1", "1", "Walter",
-                new BigDecimal("2000.00"), new BigDecimal("500.00"), habilitado);
+                new BigDecimal("2000.00"), new BigDecimal("500.00"), new EstadoPropietarioHabilitado(null));
         Propietario prop2 = new Propietario("2", "2", "josé",
-                new BigDecimal("800.00"), new BigDecimal("200.00"), habilitado);
+                new BigDecimal("800.00"), new BigDecimal("200.00"), new EstadoPropietarioHabilitado(null));
+
+        // Actualizar la referencia propietario en el estado
+        prop1.setEstadoPropietario(new EstadoPropietarioHabilitado(prop1));
+        prop2.setEstadoPropietario(new EstadoPropietarioHabilitado(prop2));
 
         propietarios.add(prop1);
         propietarios.add(prop2);

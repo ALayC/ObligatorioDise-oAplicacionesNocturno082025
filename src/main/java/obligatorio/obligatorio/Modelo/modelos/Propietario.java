@@ -22,19 +22,19 @@ public final class Propietario extends Observable {
     private String nombreCompleto;
     private BigDecimal saldoActual;
     private BigDecimal saldoMinimoAlerta;
-    private Estado estadoActual;
+    private EstadoPropietario estadoPropietario;
     private final Set<Vehiculo> vehiculos = new HashSet<>();
     private final List<Notificacion> notificaciones = new ArrayList<>();
     private final Set<AsignacionBonificacion> asignaciones = new HashSet<>();
 
     public Propietario(String cedula, String password, String nombreCompleto,
-                       BigDecimal saldoActual, BigDecimal saldoMinimoAlerta, Estado estadoActual) {
+                       BigDecimal saldoActual, BigDecimal saldoMinimoAlerta, EstadoPropietario estadoPropietario) {
         this.cedula = Objects.requireNonNull(cedula);
         this.password = Objects.requireNonNull(password);
         this.nombreCompleto = Objects.requireNonNull(nombreCompleto);
         this.saldoActual = Objects.requireNonNull(saldoActual);
         this.saldoMinimoAlerta = Objects.requireNonNull(saldoMinimoAlerta);
-        this.estadoActual = Objects.requireNonNull(estadoActual);
+        this.estadoPropietario = Objects.requireNonNull(estadoPropietario);
     }
 
     // Getters y setters de Usuario
@@ -49,8 +49,16 @@ public final class Propietario extends Observable {
     public void setSaldoActual(BigDecimal saldoActual) { this.saldoActual = saldoActual; }
     public BigDecimal getSaldoMinimoAlerta() { return saldoMinimoAlerta; }
     public void setSaldoMinimoAlerta(BigDecimal saldoMinimoAlerta) { this.saldoMinimoAlerta = saldoMinimoAlerta; }
-    public Estado getEstadoActual() { return estadoActual; }
-    public void setEstadoActual(Estado estadoActual) { this.estadoActual = estadoActual; }
+    public EstadoPropietario getEstadoPropietario() {
+        return estadoPropietario;
+    }
+    public void setEstadoPropietario(EstadoPropietario estadoPropietario) {
+        this.estadoPropietario = Objects.requireNonNull(estadoPropietario);
+    }
+        // Delegación de la acción de asignar bonificación al estado actual
+        public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
+            estadoPropietario.asignarBonificacion(bonificacion, puesto);
+        }
     public Set<Vehiculo> getVehiculos() { return Collections.unmodifiableSet(vehiculos); }
     public List<Notificacion> getNotificaciones() { return Collections.unmodifiableList(notificaciones); }
     public Set<AsignacionBonificacion> getAsignaciones() { return Collections.unmodifiableSet(asignaciones); }
@@ -59,6 +67,21 @@ public final class Propietario extends Observable {
     public boolean agregarAsignacion(AsignacionBonificacion a){ return asignaciones.add(a); }
     public int cantidadNotificaciones() { return notificaciones.size(); }
     public void limpiarNotificaciones() { notificaciones.clear(); }
+
+    // Verifica si el propietario ya tiene una bonificación asignada para el puesto dado
+    public boolean tieneBonificacionParaPuesto(Puesto puesto) {
+        for (AsignacionBonificacion asignacion : asignaciones) {
+            if (asignacion.getPuesto().equals(puesto)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Agrega una asignación de bonificación al propietario
+    public void agregarAsignacionBonificacion(AsignacionBonificacion asignacion) {
+        asignaciones.add(asignacion);
+    }
 
     @Override
     public void agregarObservador(obligatorio.obligatorio.observador.Observador o) {

@@ -26,7 +26,7 @@ public class SesionDTO {
         Propietario p = s.getPropietario();
         this.cedulaPropietario = p.getCedula();
         this.nombrePropietario = p.getNombreCompleto();
-        this.estadoPropietario = p.getEstadoActual() != null ? p.getEstadoActual().getNombre() : null;
+        this.estadoPropietario = p.getEstadoPropietario() != null ? p.getEstadoPropietario().getNombre() : null;
         this.saldoActual = p.getSaldoActual() != null ? p.getSaldoActual().toPlainString() : null;
         this.cantidadVehiculos = p.getVehiculos().size();
     }

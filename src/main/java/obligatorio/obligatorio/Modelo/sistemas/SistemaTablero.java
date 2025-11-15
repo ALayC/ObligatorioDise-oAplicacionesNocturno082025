@@ -46,7 +46,7 @@ public class SistemaTablero {
     // ------------------- helpers -------------------
 
     private CabeceraPropietarioDTO construirCabecera(Propietario p) {
-        String estado = p.getEstadoActual() != null ? p.getEstadoActual().getNombre() : "—";
+        String estado = p.getEstadoPropietario() != null ? p.getEstadoPropietario().getNombre() : "—";
         return new CabeceraPropietarioDTO(
                 p.getNombreCompleto(),
                 estado,

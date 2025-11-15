@@ -51,9 +51,9 @@ public class Fachada extends Observable {
     public List<Transito> getTransitos() { return sTransito.getTransitos(); }
 
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
-                                   BigDecimal saldo, BigDecimal saldoMin, Estado estado)
+                                   BigDecimal saldo, BigDecimal saldoMin, String nombreEstado)
             throws ObligatorioException {
-        sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin, estado);
+        sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin, nombreEstado);
         // Podría disparar evento de cambio de sesiones si se refleja en vistas de administración
     }
 

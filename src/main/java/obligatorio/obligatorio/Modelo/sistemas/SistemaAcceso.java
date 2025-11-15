@@ -8,7 +8,11 @@ import java.util.Set;
 
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
-import obligatorio.obligatorio.Modelo.modelos.Estado;
+import obligatorio.obligatorio.Modelo.modelos.EstadoPropietario;
+import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioDeshabilitado;
+import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioHabilitado;
+import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioPenalizado;
+import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioSuspendido;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
 import obligatorio.obligatorio.Modelo.modelos.Propietario;
 import obligatorio.obligatorio.Modelo.modelos.Sesion;
@@ -29,9 +33,37 @@ public class SistemaAcceso {
     }
 
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
-                                   BigDecimal saldo, BigDecimal saldoMin, Estado estado) throws ObligatorioException {
-        if (estado == null) estado = new Estado("Habilitado");
-        agregarPropietario(new Propietario(cedula, pwd, nombreCompleto, saldo, saldoMin, estado));
+                                   BigDecimal saldo, BigDecimal saldoMin, String nombreEstado) throws ObligatorioException {
+        EstadoPropietario estadoPropietario;
+        if (nombreEstado == null || nombreEstado.equalsIgnoreCase("Habilitado")) {
+            estadoPropietario = new EstadoPropietarioHabilitado(null);
+        } else if (nombreEstado.equalsIgnoreCase("Deshabilitado")) {
+            estadoPropietario = new EstadoPropietarioDeshabilitado(null);
+        } else if (nombreEstado.equalsIgnoreCase("Suspendido")) {
+            estadoPropietario = new EstadoPropietarioSuspendido(null);
+        } else if (nombreEstado.equalsIgnoreCase("Penalizado")) {
+            estadoPropietario = new EstadoPropietarioPenalizado(null);
+        } else {
+            estadoPropietario = new EstadoPropietarioHabilitado(null);
+        }
+        Propietario p = new Propietario(cedula, pwd, nombreCompleto, saldo, saldoMin, estadoPropietario);
+        p.setEstadoPropietario(crearEstadoPropietarioParaPropietario(p, nombreEstado));
+        agregarPropietario(p);
+    }
+
+    // Helper para crear el estado concreto y asociar el propietario
+    private EstadoPropietario crearEstadoPropietarioParaPropietario(Propietario p, String nombreEstado) {
+        if (nombreEstado == null || nombreEstado.equalsIgnoreCase("Habilitado")) {
+            return new EstadoPropietarioHabilitado(p);
+        } else if (nombreEstado.equalsIgnoreCase("Deshabilitado")) {
+            return new EstadoPropietarioDeshabilitado(p);
+        } else if (nombreEstado.equalsIgnoreCase("Suspendido")) {
+            return new EstadoPropietarioSuspendido(p);
+        } else if (nombreEstado.equalsIgnoreCase("Penalizado")) {
+            return new EstadoPropietarioPenalizado(p);
+        } else {
+            return new EstadoPropietarioHabilitado(p);
+        }
     }
 
     public void agregarAdministrador(Administrador a) throws ObligatorioException {
@@ -49,7 +81,7 @@ public class SistemaAcceso {
     public Sesion loginPropietario(String cedula, String pwd) throws ObligatorioException {
         for (Propietario p : propietarios) {
             if (p.getCedula().equals(cedula) && p.getPassword().equals(pwd)) {
-                String nombreEstado = p.getEstadoActual() != null ? p.getEstadoActual().getNombre() : null;
+                String nombreEstado = p.getEstadoPropietario() != null ? p.getEstadoPropietario().getNombre() : null;
                 if (nombreEstado == null || !nombreEstado.equalsIgnoreCase("Habilitado"))
                     throw new ObligatorioException("Usuario deshabilitado, no puede ingresar al sistema");
                 Sesion s = new Sesion(p);
