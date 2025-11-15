@@ -169,16 +169,6 @@
         </tbody>
       </table>
     </div>
-
-    <!-- ÚNICO bloque de recarga -->
-    <div class="card" style="margin-top:16px">
-      <h3>Recargar saldo</h3>
-      <form id="formRecarga" onsubmit="handleRecarga(event)">
-        <label for="monto">Monto</label>
-        <input id="monto" name="monto" type="number" min="1" step="1" required />
-        <button type="submit">Recargar</button>
-      </form>
-    </div>
   </div>
 
   <script>
@@ -272,12 +262,7 @@
     // errores de negocio
     async function excepcionDeAplicacion(text) { alert(text); }
 
-    // handler de recarga
-    function handleRecarga(e) {
-      e.preventDefault();
-      submit("/propietario/recargarSaldo",
-        new URLSearchParams(new FormData(document.getElementById("formRecarga"))).toString());
-    }
+
 
   </script>
 </body>
