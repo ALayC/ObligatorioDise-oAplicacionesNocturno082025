@@ -17,47 +17,52 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ConexionNavegador  {
 
     private SseEmitter conexionSSE;
+    private final ObjectMapper objectMapper;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ConexionNavegador(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public void conectarSSE() {
-        if (conexionSSE != null) { //si hay hay una conexion la cierro
+        if (conexionSSE != null) {
             cerrarConexion();
         }
-        long timeOut = 30 * 60 * 1000; //30 minutos de timeOut (igual al valor por defecto de la sesion)
+        long timeOut = 30 * 60 * 1000;
         conexionSSE = new SseEmitter(timeOut);
-        
     }
-    public void cerrarConexion(){
-        try{
-            if(conexionSSE!=null){
+
+    public void cerrarConexion() {
+        try {
+            if (conexionSSE != null) {
                 conexionSSE.complete();
                 conexionSSE = null;
             }
-        }catch(Exception e){}
+        } catch (Exception e) {}
     }
 
     public SseEmitter getConexionSSE() {
         return conexionSSE;
     }
-     
+
     public void enviarJSON(Object informacion) {
         try {
-            String json = new ObjectMapper().writeValueAsString(informacion);
+            String json = objectMapper.writeValueAsString(informacion);
             System.out.println("[LOG] ConexionNavegador.enviarJSON: " + json.substring(0, Math.min(json.length(), 200)));
             enviarMensaje(json);
         } catch (JsonProcessingException e) {
             System.out.println("Error al convertir a JSON:" + e.getMessage());
         }
     }
+
     public void enviarMensaje(String mensaje) {
-       
-	if(conexionSSE==null) return;
-        try {	
-	     	conexionSSE.send(mensaje);
-						
-	} catch (Throwable e) {
+        if (conexionSSE == null) return;
+        try {
+            conexionSSE.send(mensaje);
+        } catch (Throwable e) {
             System.out.println("Error al enviar mensaje:" + e.getMessage());
             cerrarConexion();
-	}
+        }
     }
     
   

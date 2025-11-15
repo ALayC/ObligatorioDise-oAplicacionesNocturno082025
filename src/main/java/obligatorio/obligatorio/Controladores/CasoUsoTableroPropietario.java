@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +28,11 @@ public class CasoUsoTableroPropietario implements Observador {
         this.conexionNavegador = conexionNavegador;
     }
     
+    @GetMapping(value = "/registrarSSE", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter registrarSSE(@SessionAttribute(name = "usuarioPropietario") Sesion sesion) {
+        conexionNavegador.conectarSSE();
+        return conexionNavegador.getConexionSSE();
+    }
     @PostMapping("/vistaConectada")
     public List<Respuesta> inicializarVista(@SessionAttribute(name = "usuarioPropietario") Sesion sesion){
         propietario = sesion.getPropietario();

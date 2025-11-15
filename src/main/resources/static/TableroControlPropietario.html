@@ -9,13 +9,16 @@
 
   <!-- 1) vistaWeb primero (define submit(), etc.) -->
   <script src="vistaWeb.js"></script>
-
+  <script src="sse.js"></script>
   <!-- 2) Config para iniciar la vista llamando al backend -->
   <script>
     window.urlIniciarVista = "/propietario/vistaConectada";
     window.parametrosInicioVista = "";
     window.urlCierreVista = "/propietario/vistaCerrada";
     window.parametrosCierreVista = "";
+
+      // Configuración SSE para actualizaciones automáticas
+      window.urlRegistroSSE = "/propietario/registrarSSE";
 
     // si no hay sesión, redirige a login
     window.procesarErrorSubmit = function (status, text) {
@@ -26,6 +29,15 @@
       console.error("Error en submit:", status, text);
       alert("Se produjo un error");
     };
+
+      // Mostrar indicador de actualización automática cuando SSE esté activo
+      window.conexionSSECerrada = function() {
+        document.getElementById('autoRefreshStatus').style.display = 'none';
+      };
+      window.procesarMensajeSSE = function(mensaje) {
+        document.getElementById('autoRefreshStatus').style.display = '';
+        procesarResultadosSubmit(mensaje);
+      };
   </script>
 
   <!-- 3) utilidades. Dejalo después para asegurar la versión correcta de serializarFormulario -->
