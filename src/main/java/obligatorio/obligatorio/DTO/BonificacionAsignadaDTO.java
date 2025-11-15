@@ -1,13 +1,13 @@
 package obligatorio.obligatorio.DTO;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class BonificacionAsignadaDTO {
     public String bonificacion;
     public String puesto;
-    public LocalDate fechaAsignada;
+    public LocalDateTime fechaAsignada;
 
-    public BonificacionAsignadaDTO(String bonificacion, String puesto, LocalDate fechaAsignada) {
+    public BonificacionAsignadaDTO(String bonificacion, String puesto, LocalDateTime fechaAsignada) {
         this.bonificacion = bonificacion;
         this.puesto = puesto;
         this.fechaAsignada = fechaAsignada;

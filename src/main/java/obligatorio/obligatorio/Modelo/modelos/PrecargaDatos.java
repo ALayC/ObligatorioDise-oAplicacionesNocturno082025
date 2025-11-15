@@ -1,7 +1,6 @@
 package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,9 +127,9 @@ public final class PrecargaDatos {
         vehiculos.add(v1); vehiculos.add(v2); vehiculos.add(v3); vehiculos.add(v4);
 
         // ----- Asignaciones de bonificación -----
-        AsignacionBonificacion a1 = new AsignacionBonificacion(prop1, p1, frecuentes,  LocalDate.now().minusDays(5));
-        AsignacionBonificacion a2 = new AsignacionBonificacion(prop1, p2, exonerados,  LocalDate.now().minusDays(2));
-        AsignacionBonificacion a3 = new AsignacionBonificacion(prop2, p1, trabajadores,LocalDate.now().minusDays(1));
+        AsignacionBonificacion a1 = new AsignacionBonificacion(prop1, p1, frecuentes,  java.time.LocalDate.now().minusDays(5).atStartOfDay());
+        AsignacionBonificacion a2 = new AsignacionBonificacion(prop1, p2, exonerados,  java.time.LocalDate.now().minusDays(2).atStartOfDay());
+        AsignacionBonificacion a3 = new AsignacionBonificacion(prop2, p1, trabajadores,java.time.LocalDate.now().minusDays(1).atStartOfDay());
 
         prop1.agregarAsignacion(a1);
         prop1.agregarAsignacion(a2);

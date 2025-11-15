@@ -1,8 +1,6 @@
 package obligatorio.obligatorio.Modelo.modelos;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
-
 public final class Notificacion {
     private final String mensaje;
     private final LocalDateTime fechaHora;

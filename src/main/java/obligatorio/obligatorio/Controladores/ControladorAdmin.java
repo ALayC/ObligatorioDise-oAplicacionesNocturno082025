@@ -103,16 +103,35 @@ public class ControladorAdmin implements Observador {
         Fachada.getInstancia().quitarObservador(this);
     }
 
-    /** Implementación del patrón Observador: recibe eventos globales de la Fachada. */
     @Override
     public void actualizar(Object evento, Observable origen) {
-        // Enviar actualizaciones vía SSE cuando sea necesario
-        // if(!(evento instanceof Fachada.Eventos)) return;
-        // Fachada.Eventos ev = (Fachada.Eventos) evento;
-        // switch (ev) {
-        //     case transitoRegistrado -> conexionNavegador.enviarJSON(...);
-        //     default -> { }
-        // }
+        if (!(evento instanceof Fachada.Eventos)) return;
+        Fachada.Eventos ev = (Fachada.Eventos) evento;
+        switch (ev) {
+            case transitoRegistrado -> {
+                if (conexionNavegador.getConexionSSE() != null) {
+                    conexionNavegador.enviarJSON(Fachada.getInstancia().getTransitos());
+                }
+            }
+            case saldoActualizado -> {
+                if (conexionNavegador.getConexionSSE() != null) {
+                    conexionNavegador.enviarJSON(Fachada.getInstancia().getSesiones());
+                }
+            }
+            case notificacionesActualizadas -> {
+
+                if (conexionNavegador.getConexionSSE() != null) {
+                    // Aquí podrías enviar notificaciones si tienes un método para obtenerlas
+                    // conexionNavegador.enviarJSON(Fachada.getInstancia().getNotificacionesGlobales());
+                }
+            }
+            case cambioListaSesiones -> {
+                // Actualizar lista de sesiones si el admin lo requiere
+                if (conexionNavegador.getConexionSSE() != null) {
+                    conexionNavegador.enviarJSON(Fachada.getInstancia().getSesiones());
+                }
+            }
+        }
     }
 
 

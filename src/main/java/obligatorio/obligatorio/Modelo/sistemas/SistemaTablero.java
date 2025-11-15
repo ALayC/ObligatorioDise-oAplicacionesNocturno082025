@@ -1,9 +1,6 @@
 package obligatorio.obligatorio.Modelo.sistemas;
 
-import obligatorio.obligatorio.Modelo.modelos.*;
-import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,10 +11,14 @@ import obligatorio.obligatorio.DTO.CabeceraPropietarioDTO;
 import obligatorio.obligatorio.DTO.NotificacionDTO;
 import obligatorio.obligatorio.DTO.TransitoDTO;
 import obligatorio.obligatorio.DTO.VehiculoResumenDTO;
+import obligatorio.obligatorio.Modelo.fachada.Fachada;
+import obligatorio.obligatorio.Modelo.modelos.Propietario;
+import obligatorio.obligatorio.Modelo.modelos.Transito;
+import obligatorio.obligatorio.Modelo.modelos.Vehiculo;
 
 public class SistemaTablero {
 
-    private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // FORMATO_FECHA eliminado, ya no se usa
 
     public List<Respuesta> armarRespuestasTablero(Propietario p) {
         CabeceraPropietarioDTO cabecera = construirCabecera(p);
@@ -52,14 +53,14 @@ public class SistemaTablero {
                 p.getSaldoActual());
     }
 
-    private List<BonificacionAsignadaDTO> construirBonificaciones(Propietario p) {
-        return p.getAsignaciones().stream()
-                .map(a -> new BonificacionAsignadaDTO(
-                        a.getBonificacion().getNombre(),
-                        a.getPuesto().getNombre(),
-                        a.getFechaAsignacion()))
-                .sorted(Comparator.comparing(b -> b.fechaAsignada)) // asc; usar .reversed() si querés desc
-                .collect(Collectors.toList());
+        private List<BonificacionAsignadaDTO> construirBonificaciones(Propietario p) {
+                return p.getAsignaciones().stream()
+                                .map(a -> new BonificacionAsignadaDTO(
+                                                a.getBonificacion().getNombre(),
+                                                a.getPuesto().getNombre(),
+                                                a.getFechaAsignacion()))
+                                .sorted(Comparator.comparing(b -> b.fechaAsignada)) // asc; usar .reversed() si querés desc
+                                .collect(Collectors.toList());
     }
 
     private List<VehiculoResumenDTO> construirVehiculos(Propietario p) {
@@ -102,15 +103,14 @@ public class SistemaTablero {
                         t.getBonificacionAplicada() != null ? t.getMontoBase().subtract(t.getMontoCobrado())
                                 : BigDecimal.ZERO,
                         t.getMontoCobrado(),
-                        t.getFechaHora().toLocalDate(),
-                        t.getFechaHora().toLocalTime()))
+                        t.getFechaHora()))
                 .collect(Collectors.toList());
     }
 
     private List<NotificacionDTO> construirNotificaciones(Propietario p) {
         return p.getNotificaciones().stream()
                 .map(n -> new NotificacionDTO(
-                        n.getFechaHora().format(FORMATO_FECHA), 
+                        n.getFechaHora(), 
                         n.getMensaje()))
                 .sorted(Comparator.comparing((NotificacionDTO n) -> n.fechaHora).reversed())
                 .collect(Collectors.toList());
