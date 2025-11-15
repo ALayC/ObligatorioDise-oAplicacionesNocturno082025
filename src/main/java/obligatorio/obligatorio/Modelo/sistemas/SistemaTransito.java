@@ -1,8 +1,8 @@
 package obligatorio.obligatorio.Modelo.sistemas;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,12 +58,11 @@ public class SistemaTransito {
     public void registrarTransito(Transito t) { if (t != null) transitos.add(t); }
     public List<Transito> getTransitos() { return transitos; }
 
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     /** Caso de uso: Emular tránsito (orquestador). */
-    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora)
+    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
             throws ObligatorioException {
-        validarParametros(matricula, nombrePuesto, fechaHora);
+        validarParametros(matricula, nombrePuesto, fecha, hora);
         Vehiculo vehiculo = buscarVehiculo(matricula);
         Propietario propietario = vehiculo.getPropietario();
         validarEstadoPropietario(propietario);
@@ -74,18 +73,19 @@ public class SistemaTransito {
         BigDecimal montoCobrado = calcularMontoCobrado(tarifa, bonificacion);
         verificarSaldo(propietario, montoCobrado);
         descontarSaldo(propietario, montoCobrado);
-    registrarTransitoInterno(vehiculo, puesto, tarifa, fechaHora, bonificacion, montoCobrado);
-        notificarTransitoSiCorresponde(propietario, vehiculo, puesto, fechaHora, penalizado);
+        registrarTransitoInterno(vehiculo, puesto, tarifa, fecha, hora, bonificacion, montoCobrado);
+        notificarTransitoSiCorresponde(propietario, vehiculo, puesto, fecha, penalizado);
         notificarSaldoBajoSiCorresponde(propietario);
         emitirEventosGlobales();
         return construirResultado(propietario, vehiculo, tarifa, bonificacion, montoCobrado);
     }
 
     // -------- Helpers privados (mantienen comportamiento original) --------
-    private void validarParametros(String matricula, String nombrePuesto, LocalDateTime fechaHora) throws ObligatorioException {
+    private void validarParametros(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora) throws ObligatorioException {
         if (matricula == null || matricula.isBlank()) throw new ObligatorioException("Matrícula requerida");
         if (nombrePuesto == null || nombrePuesto.isBlank()) throw new ObligatorioException("Puesto requerido");
-        if (fechaHora == null) throw new ObligatorioException("Fecha y hora requeridas");
+        if (fecha == null) throw new ObligatorioException("Fecha requerida");
+        if (hora == null) throw new ObligatorioException("Hora requerida");
     }
 
     private Vehiculo buscarVehiculo(String matricula) throws ObligatorioException {
@@ -147,26 +147,36 @@ public class SistemaTransito {
         propietario.setSaldoActual(propietario.getSaldoActual().subtract(monto));
     }
 
-    private void registrarTransitoInterno(Vehiculo vehiculo, Puesto puesto, Tarifa tarifa, LocalDateTime fechaHora,
+    private void registrarTransitoInterno(Vehiculo vehiculo, Puesto puesto, Tarifa tarifa, LocalDate fecha, LocalTime hora,
                                           Bonificacion bonificacion, BigDecimal montoCobrado) {
-        Transito t = new Transito(vehiculo, puesto, tarifa, fechaHora, tarifa.getMonto(), montoCobrado, bonificacion, true);
+        Transito t = new Transito(
+            vehiculo,
+            puesto,
+            tarifa,
+            fecha,
+            hora,
+            tarifa.getMonto(),
+            montoCobrado,
+            bonificacion,
+            true
+        );
         transitos.add(t);
     }
 
-    private void notificarTransitoSiCorresponde(Propietario propietario, Vehiculo vehiculo, Puesto puesto,
-                                                LocalDateTime fechaHora, boolean penalizado) {
+        private void notificarTransitoSiCorresponde(Propietario propietario, Vehiculo vehiculo, Puesto puesto,
+                            LocalDate fechaHora, boolean penalizado) {
         if (penalizado) return;
         String mensaje = String.format("%s Pasaste por el puesto %s con el vehículo %s",
-                fechaHora.format(FMT), puesto.getNombre(), vehiculo.getMatricula());
-        propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
+            fechaHora.toString(), puesto.getNombre(), vehiculo.getMatricula());
+        propietario.agregarNotificacion(new Notificacion(mensaje, LocalDate.now()));
         propietario.avisar(Propietario.Eventos.TRANSITO_REALIZADO);
-    }
+        }
 
     private void notificarSaldoBajoSiCorresponde(Propietario propietario) {
         if (propietario.getSaldoActual().compareTo(propietario.getSaldoMinimoAlerta()) < 0) {
             String mensaje = String.format("%s Tu saldo actual es de $%s. Te recomendamos hacer una recarga",
-                    LocalDateTime.now().format(FMT), propietario.getSaldoActual());
-            propietario.agregarNotificacion(new Notificacion(mensaje, LocalDateTime.now()));
+                    LocalDate.now().toString(), propietario.getSaldoActual());
+            propietario.agregarNotificacion(new Notificacion(mensaje, LocalDate.now()));
             propietario.avisar(Propietario.Eventos.SALDO_BAJO);
         }
     }
@@ -177,7 +187,7 @@ public class SistemaTransito {
         Fachada.getInstancia().avisar(Fachada.Eventos.notificacionesActualizadas);
     }
 
-    private ResultadoEmulacionDTO construirResultado(Propietario propietario, Vehiculo vehiculo, Tarifa tarifa,
+    private ResultadoEmulacionDTO construirResultado(Propietario propietario, Vehiculo vehiculo, Tarifa unused,
                                                       Bonificacion bonificacion, BigDecimal montoCobrado) {
         ResultadoEmulacionDTO dto = new ResultadoEmulacionDTO();
         dto.setNombrePropietario(propietario.getNombreCompleto());

@@ -93,7 +93,7 @@ public class SistemaTablero {
 
         return Fachada.getInstancia().getTransitos().stream()
                 .filter(t -> matriculasProp.contains(t.getVehiculo().getMatricula()))
-                .sorted(Comparator.comparing(Transito::getFechaHora).reversed())
+                .sorted(Comparator.comparing(Transito::getFecha).thenComparing(Transito::getHora).reversed())
                 .map(t -> new TransitoDTO(
                         t.getPuesto().getNombre(),
                         t.getVehiculo().getMatricula(),
@@ -103,7 +103,8 @@ public class SistemaTablero {
                         t.getBonificacionAplicada() != null ? t.getMontoBase().subtract(t.getMontoCobrado())
                                 : BigDecimal.ZERO,
                         t.getMontoCobrado(),
-                        t.getFechaHora()))
+                        t.getFecha(),
+                        t.getHora()))
                 .collect(Collectors.toList());
     }
 

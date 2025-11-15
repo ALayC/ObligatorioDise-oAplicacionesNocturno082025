@@ -1,7 +1,6 @@
 package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,20 +115,20 @@ public final class PrecargaDatos {
         // ----- Vehículos (asociados a propietarios) -----
         Vehiculo v1 = new Vehiculo("1", "1",      "Rojo",  auto,   prop1);
         Vehiculo v2 = new Vehiculo("SBC5678", "Camión 3/4", "Azul",  camion, prop1);
-        Vehiculo v3 = new Vehiculo("SBD9012", "Street",     "Negro", moto,   prop2);
+        Vehiculo v3 = new Vehiculo("SBD9012", "Street",     "Negro", moto,   prop1); 
         Vehiculo v4 = new Vehiculo("2", "2",      "Rojo",  auto,   prop2);
         
         prop1.agregarVehiculo(v1);
         prop1.agregarVehiculo(v2);
-        prop2.agregarVehiculo(v3);
+        prop1.agregarVehiculo(v3);
         prop2.agregarVehiculo(v4);
 
         vehiculos.add(v1); vehiculos.add(v2); vehiculos.add(v3); vehiculos.add(v4);
 
         // ----- Asignaciones de bonificación -----
-        AsignacionBonificacion a1 = new AsignacionBonificacion(prop1, p1, frecuentes,  java.time.LocalDate.now().minusDays(5).atStartOfDay());
-        AsignacionBonificacion a2 = new AsignacionBonificacion(prop1, p2, exonerados,  java.time.LocalDate.now().minusDays(2).atStartOfDay());
-        AsignacionBonificacion a3 = new AsignacionBonificacion(prop2, p1, trabajadores,java.time.LocalDate.now().minusDays(1).atStartOfDay());
+        AsignacionBonificacion a1 = new AsignacionBonificacion(prop1, p1, frecuentes,  java.time.LocalDate.now().minusDays(5));
+        AsignacionBonificacion a2 = new AsignacionBonificacion(prop1, p2, exonerados,  java.time.LocalDate.now().minusDays(2));
+        AsignacionBonificacion a3 = new AsignacionBonificacion(prop2, p1, trabajadores,java.time.LocalDate.now().minusDays(1));
 
         prop1.agregarAsignacion(a1);
         prop1.agregarAsignacion(a2);
@@ -139,18 +138,18 @@ public final class PrecargaDatos {
 
         // ----- Notificaciones -----
         Notificacion n11 = new Notificacion(
-                LocalDateTime.now().minusHours(2).toLocalDate() + " Recarga acreditada: $500",
-                LocalDateTime.now().minusHours(2));
+                java.time.LocalDate.now().minusDays(2) + " Recarga acreditada: $500",
+                java.time.LocalDate.now().minusDays(2));
         Notificacion n12 = new Notificacion(
-                LocalDateTime.now().minusDays(1).toLocalDate() + " Saldo bajo: recuerde recargar",
-                LocalDateTime.now().minusDays(1).withHour(9).withMinute(30));
+                java.time.LocalDate.now().minusDays(1) + " Saldo bajo: recuerde recargar",
+                java.time.LocalDate.now().minusDays(1));
         prop1.agregarNotificacion(n11);
         prop1.agregarNotificacion(n12);
         notificaciones.add(n11); notificaciones.add(n12);
 
         Notificacion n21 = new Notificacion(
-                LocalDateTime.now().minusHours(5).toLocalDate() + " Bonificación 'Trabajadores' aplicada en Peaje Santa Lucía",
-                LocalDateTime.now().minusHours(5));
+                java.time.LocalDate.now().minusDays(5) + " Bonificación 'Trabajadores' aplicada en Peaje Santa Lucía",
+                java.time.LocalDate.now().minusDays(5));
         prop2.agregarNotificacion(n21);
         notificaciones.add(n21);
 
@@ -165,7 +164,8 @@ public final class PrecargaDatos {
         BigDecimal cobrado_v1_p1= base_v1_p1.subtract(bonif_v1_p1); // 100.00
         Transito tr1 = new Transito(
                 v1, p1, t11,
-                LocalDateTime.now().minusHours(3),
+                java.time.LocalDate.of(2025, 11, 15),
+                java.time.LocalTime.of(8, 30),
                 base_v1_p1,
                 cobrado_v1_p1,
                 frecuentes,
@@ -175,7 +175,8 @@ public final class PrecargaDatos {
         BigDecimal base_v2_p2   = t22.getMonto();             // 270.00
         Transito tr2 = new Transito(
                 v2, p2, t22,
-                LocalDateTime.now().minusDays(1).withHour(18).withMinute(15),
+                java.time.LocalDate.of(2025, 11, 14),
+                java.time.LocalTime.of(18, 15),
                 base_v2_p2,
                 BigDecimal.ZERO,
                 exonerados,
@@ -185,7 +186,8 @@ public final class PrecargaDatos {
         BigDecimal base_v3_p1   = t13.getMonto();             // 80.00
         Transito tr3 = new Transito(
                 v3, p1, t13,
-                LocalDateTime.now().minusDays(2).withHour(8).withMinute(5),
+                java.time.LocalDate.of(2025, 11, 13),
+                java.time.LocalTime.of(8, 5),
                 base_v3_p1,
                 base_v3_p1,
                 null,

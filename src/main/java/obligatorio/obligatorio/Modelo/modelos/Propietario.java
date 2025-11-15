@@ -60,6 +60,24 @@ public final class Propietario extends Observable {
     public int cantidadNotificaciones() { return notificaciones.size(); }
     public void limpiarNotificaciones() { notificaciones.clear(); }
 
+    @Override
+    public void agregarObservador(obligatorio.obligatorio.observador.Observador o) {
+        super.agregarObservador(o);
+        System.out.println("[LOG] Observador agregado a propietario: " + nombreCompleto);
+    }
+
+    @Override
+    public void quitarObservador(obligatorio.obligatorio.observador.Observador o) {
+        super.quitarObservador(o);
+        System.out.println("[LOG] Observador quitado de propietario: " + nombreCompleto);
+    }
+
+    @Override
+    public void avisar(Object evento) {
+        System.out.println("[LOG] Propietario.avisar llamado. Evento: " + evento + " para " + nombreCompleto);
+        super.avisar(evento);
+    }
+
 
     
     @Override

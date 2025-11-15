@@ -1,6 +1,7 @@
+
 package obligatorio.obligatorio.Controladores;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -37,7 +38,11 @@ public class ControladorAdmin implements Observador {
     public ControladorAdmin(@Autowired ConexionNavegador conexionNavegador) {
         this.conexionNavegador = conexionNavegador;
     }
-
+        @PostMapping("/registrarSSE")
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter registrarSSE(@SessionAttribute(name = "usuarioAdmin") Administrador admin) {
+        conexionNavegador.conectarSSE();
+        return conexionNavegador.getConexionSSE();
+    }
     /**
      * Endpoint inicial que registra al controlador como observador y devuelve datos base.
      */
@@ -76,21 +81,22 @@ public class ControladorAdmin implements Observador {
     public Object emularTransito(
             @RequestParam("matricula") String matricula,
             @RequestParam("nombrePuesto") String nombrePuesto,
-            @RequestParam("fechaHora") String fechaHoraStr,
+            @RequestParam("fecha") String fechaStr,
+            @RequestParam("hora") String horaStr,
             @SessionAttribute(name = "usuarioAdmin") Administrador admin) {
         try {
             // Parsear fecha y hora
-            LocalDateTime fechaHora = LocalDateTime.parse(fechaHoraStr, 
-                DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            
+            LocalDate fecha = LocalDate.parse(fechaStr, DateTimeFormatter.ISO_LOCAL_DATE);
+            java.time.LocalTime hora = java.time.LocalTime.parse(horaStr, DateTimeFormatter.ISO_LOCAL_TIME);
+
             // Emular tránsito
             ResultadoEmulacionDTO resultado = Fachada.getInstancia()
-                .emularTransito(matricula, nombrePuesto, fechaHora);
+                .emularTransito(matricula, nombrePuesto, fecha, hora);
 
             return Respuesta.lista(
                 new Respuesta("resultadoEmulacion", resultado)
             );
-            
+
         } catch (ObligatorioException e) {
             return ResponseEntity.status(299).body(e.getMessage());
         } catch (Exception e) {
@@ -133,6 +139,5 @@ public class ControladorAdmin implements Observador {
             }
         }
     }
-
 
 }

@@ -1,11 +1,11 @@
 package obligatorio.obligatorio.DTO;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 public class NotificacionDTO {
-    public LocalDateTime fechaHora;
+    public LocalDate fechaHora;
     public String mensaje;
 
-    public NotificacionDTO(LocalDateTime fechaHora, String mensaje) {
+    public NotificacionDTO(LocalDate fechaHora, String mensaje) {
         this.fechaHora = fechaHora;
         this.mensaje = mensaje;
     }

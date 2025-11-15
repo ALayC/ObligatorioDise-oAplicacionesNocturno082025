@@ -1,7 +1,8 @@
 package obligatorio.obligatorio.DTO;
 
 import java.math.BigDecimal;
-// imports innecesarios eliminados
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class TransitoDTO {
     public String puesto;
@@ -11,11 +12,12 @@ public class TransitoDTO {
     public String bonificacion;              
     public BigDecimal montoBonificacion;
     public BigDecimal montoPagado;
-    public java.time.LocalDateTime fechaHora;
+    public LocalDate fecha;
+    public LocalTime hora;
 
     public TransitoDTO(String puesto, String matricula, String nombreTarifa,
                        BigDecimal montoTarifa, String bonificacion, BigDecimal montoBonificacion,
-                       BigDecimal montoPagado, java.time.LocalDateTime fechaHora) {
+                       BigDecimal montoPagado, LocalDate fecha, LocalTime hora) {
         this.puesto = puesto;
         this.matricula = matricula;
         this.nombreTarifa = nombreTarifa;
@@ -23,6 +25,7 @@ public class TransitoDTO {
         this.bonificacion = bonificacion;
         this.montoBonificacion = montoBonificacion;
         this.montoPagado = montoPagado;
-        this.fechaHora = fechaHora;
+        this.fecha = fecha;
+        this.hora = hora;
     }
 }

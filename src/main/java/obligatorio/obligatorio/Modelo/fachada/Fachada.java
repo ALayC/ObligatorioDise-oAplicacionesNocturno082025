@@ -1,7 +1,8 @@
 package obligatorio.obligatorio.Modelo.fachada;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import obligatorio.obligatorio.Controladores.Respuesta;
@@ -110,14 +111,14 @@ public class Fachada extends Observable {
         return sTransito.getTarifasPorPuesto(nombrePuesto);
     }
 
-    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora)
-            throws ObligatorioException {
-    ResultadoEmulacionDTO dto = sTransito.emularTransito(matricula, nombrePuesto, fechaHora);
-        System.out.println("🚗 Tránsito emulado - Avisando eventos: transitoRegistrado, saldoActualizado, notificacionesActualizadas");
-        // El método interno ya genera notificaciones (saldo bajo / tránsito). Reflejamos eventos globales:
-        avisar(Eventos.transitoRegistrado);
-        avisar(Eventos.saldoActualizado);
-        avisar(Eventos.notificacionesActualizadas);
-        return dto;
-    }
+        public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
+                throws ObligatorioException {
+            ResultadoEmulacionDTO dto = sTransito.emularTransito(matricula, nombrePuesto, fecha, hora);
+            System.out.println("🚗 Tránsito emulado - Avisando eventos: transitoRegistrado, saldoActualizado, notificacionesActualizadas");
+            // El método interno ya genera notificaciones (saldo bajo / tránsito). Reflejamos eventos globales:
+            avisar(Eventos.transitoRegistrado);
+            avisar(Eventos.saldoActualizado);
+            avisar(Eventos.notificacionesActualizadas);
+            return dto;
+        }
 }

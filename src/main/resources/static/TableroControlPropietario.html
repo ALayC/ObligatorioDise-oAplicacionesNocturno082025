@@ -186,8 +186,20 @@
       const tbody = document.getElementById('tbodyBonificaciones'); tbody.innerHTML = "";
       if (!lista || !lista.length) { tbody.innerHTML = `<tr><td colspan="3">Sin bonificaciones</td></tr>`; return; }
       for (const b of lista) {
+        // Formatear fechaAsignada (LocalDateTime ISO) a dd/MM/yyyy HH:mm
+        let fecha = "—";
+        if (b.fechaAsignada) {
+          const partes = b.fechaAsignada.split("T");
+          if (partes.length === 2) {
+            const [y, m, d] = partes[0].split("-");
+            const hora = partes[1].substring(0,5);
+            fecha = `${d}/${m}/${y} ${hora}`;
+          } else {
+            fecha = b.fechaAsignada;
+          }
+        }
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${b.bonificacion}</td><td>${b.puesto}</td><td>${b.fechaAsignada ?? "—"}</td>`;
+        tr.innerHTML = `<td>${b.bonificacion}</td><td>${b.puesto}</td><td>${fecha}</td>`;
         tbody.appendChild(tr);
       }
     }
@@ -207,12 +219,15 @@
       const tbody = document.getElementById('tbodyTransitos'); tbody.innerHTML = "";
       if (!lista || !lista.length) { tbody.innerHTML = `<tr><td colspan="9">Sin tránsitos</td></tr>`; return; }
       for (const t of lista) {
+        // Mostrar fecha y hora directamente
+        const fecha = t.fecha ?? "—";
+        const hora = t.hora ?? "—";
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${t.puesto}</td><td>${t.matricula}</td><td>${t.nombreTarifa}</td>
           <td>${fmtMoneda(t.montoTarifa)}</td><td>${t.bonificacion ?? "—"}</td>
           <td>${fmtMoneda(t.montoBonificacion ?? 0)}</td><td>${fmtMoneda(t.montoPagado)}</td>
-          <td>${t.fecha ?? "—"}</td><td>${t.hora ?? "—"}</td>`;
+          <td>${fecha}</td><td>${hora}</td>`;
         tbody.appendChild(tr);
       }
     }

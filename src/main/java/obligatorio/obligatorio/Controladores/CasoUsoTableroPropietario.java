@@ -30,21 +30,28 @@ public class CasoUsoTableroPropietario implements Observador {
     @PostMapping("/vistaConectada")
     public List<Respuesta> inicializarVista(@SessionAttribute(name = "usuarioPropietario") Sesion sesion){
         propietario = sesion.getPropietario();
+        System.out.println("[LOG] Registrando observador en propietario: " + propietario.getNombreCompleto());
         propietario.agregarObservador(this);
         return Fachada.getInstancia().armarRespuestasTablero(propietario);
     }
 
     @PostMapping("/vistaCerrada")
     public void salir(){
-        if(propietario != null) propietario.quitarObservador(this);
+        if(propietario != null) {
+            System.out.println("[LOG] Quitando observador de propietario: " + propietario.getNombreCompleto());
+            propietario.quitarObservador(this);
+        }
     }
 
     @Override
     public void actualizar(Object evento, Observable origen) {
+        System.out.println("[LOG] CasoUsoTableroPropietario.actualizar llamado. Evento: " + evento);
         if (evento instanceof Propietario.Eventos ev) {
             switch (ev) {
-                case TRANSITO_REALIZADO, SALDO_BAJO -> 
+                case TRANSITO_REALIZADO, SALDO_BAJO -> {
+                    System.out.println("[LOG] Enviando SSE al propietario: " + propietario.getNombreCompleto());
                     conexionNavegador.enviarJSON(Fachada.getInstancia().armarRespuestasTablero(propietario));
+                }
             }
         }
     }

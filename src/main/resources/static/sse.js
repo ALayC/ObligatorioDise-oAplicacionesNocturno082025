@@ -14,34 +14,39 @@ function primerSubmitFinalizado(){
 function registrarSSE(){
     // Solo registrar si se configuró la URL
     if (urlRegistroSSE === null) return;
-    
+
     console.log("Registrando SSE en:", urlRegistroSSE);
-    const eventSource = new EventSource(urlRegistroSSE, {withCredentials: true});
+    // Usar fetch para POST y luego abrir EventSource con la respuesta
+    fetch(urlRegistroSSE, {
+        method: 'POST',
+        credentials: 'include'
+    }).then(response => {
+        if (response.ok) {
+            const eventSource = new EventSource(urlRegistroSSE, {withCredentials: true});
 
-    // LLEGA UN MENSAJE DESDE EL SERVIDOR
-    eventSource.onmessage = function (event){
-        try {
-            console.log("📨 Mensaje SSE recibido:", event.data);
-            const json = JSON.parse(event.data);
-            procesarMensajeSSE(json);
-        } catch(e){
-            console.error("❌ Error parseando mensaje SSE:", e, event.data);
-        }
-    };
+            eventSource.onmessage = function (event){
+                try {
+                    console.log("📨 Mensaje SSE recibido:", event.data);
+                    const json = JSON.parse(event.data);
+                    procesarMensajeSSE(json);
+                } catch(e){
+                    console.error("❌ Error parseando mensaje SSE:", e, event.data);
+                }
+            };
 
-    // ERROR EN LA CONEXIÓN CON EL SERVIDOR
-    eventSource.onerror = function (event){
-        console.warn("⚠️ Conexión SSE cerrada o error:", event);
-        eventSource.close();
-        
-        try {
-            // Método personalizable en la página que incluye esta lib
-            conexionSSECerrada(event);
-        } catch (e) {
-            // Por defecto solo loguear, NO borrar la página
-            console.error("Conexión SSE cerrada sin handler personalizado");
+            eventSource.onerror = function (event){
+                console.warn("⚠️ Conexión SSE cerrada o error:", event);
+                eventSource.close();
+                try {
+                    conexionSSECerrada(event);
+                } catch (e) {
+                    console.error("Conexión SSE cerrada sin handler personalizado");
+                }
+            };
+        } else {
+            console.error("No se pudo registrar SSE: ", response.status);
         }
-    };
+    });
 }
 
 // Por defecto procesa mensajes SSE igual que respuestas de submit

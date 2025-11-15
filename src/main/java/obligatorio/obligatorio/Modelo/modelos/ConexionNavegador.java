@@ -42,13 +42,11 @@ public class ConexionNavegador  {
     public void enviarJSON(Object informacion) {
         try {
             String json = new ObjectMapper().writeValueAsString(informacion);
+            System.out.println("[LOG] ConexionNavegador.enviarJSON: " + json.substring(0, Math.min(json.length(), 200)));
             enviarMensaje(json);
-   
         } catch (JsonProcessingException e) {
             System.out.println("Error al convertir a JSON:" + e.getMessage());
-           
         }
-   
     }
     public void enviarMensaje(String mensaje) {
        
