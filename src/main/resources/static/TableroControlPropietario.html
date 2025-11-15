@@ -12,9 +12,9 @@
 
   <!-- 2) Config para iniciar la vista llamando al backend -->
   <script>
-    window.urlIniciarVista = "/propietario/tablero";
+    window.urlIniciarVista = "/propietario/vistaConectada";
     window.parametrosInicioVista = "";
-    window.urlCierreVista = null;
+    window.urlCierreVista = "/propietario/vistaCerrada";
     window.parametrosCierreVista = "";
 
     // si no hay sesión, redirige a login
@@ -252,140 +252,6 @@
         new URLSearchParams(new FormData(document.getElementById("formRecarga"))).toString());
     }
 
-    // ===== SSE (Server-Sent Events) para notificaciones en tiempo real =====
-    let eventSource = null;
-    let reconnectAttempts = 0;
-    const MAX_RECONNECT_ATTEMPTS = 5;
-
-    function conectarSSE() {
-      if (eventSource) {
-        console.log("⚠️ Ya existe una conexión SSE");
-        return;
-      }
-
-      console.log("📡 Estableciendo conexión SSE... (intento " + (reconnectAttempts + 1) + ")");
-      
-      // IMPORTANTE: withCredentials debe ser false para same-origin
-      eventSource = new EventSource('/propietario/sse/conectar');
-
-      eventSource.onopen = function(event) {
-        console.log("✅ Conexión SSE establecida (readyState: " + eventSource.readyState + ")");
-        reconnectAttempts = 0; // Resetear contador de reintentos
-        const indicator = document.getElementById('autoRefreshStatus');
-        if (indicator) {
-          indicator.textContent = '� En vivo';
-          indicator.style.display = 'inline-flex';
-          indicator.style.backgroundColor = '#d4edda';
-          indicator.style.borderColor = '#c3e6cb';
-        }
-      };
-
-      eventSource.onmessage = function(event) {
-        console.log("📨 Mensaje SSE recibido:", event.data);
-        
-        try {
-          const data = JSON.parse(event.data);
-          
-          // Si es el mensaje de conexión establecida
-          if (data.tipo === 'CONEXION_ESTABLECIDA') {
-            console.log("✅ " + data.mensaje);
-            return;
-          }
-          
-          // Procesar notificación
-          procesarNotificacionSSE(data);
-        } catch (e) {
-          console.error("❌ Error al parsear mensaje SSE:", e);
-          console.log("Mensaje raw:", event.data);
-        }
-      };
-
-      eventSource.onerror = function(event) {
-        console.error("❌ Error en conexión SSE (readyState: " + (eventSource ? eventSource.readyState : 'null') + ")", event);
-        
-        const indicator = document.getElementById('autoRefreshStatus');
-        if (indicator) {
-          indicator.textContent = '🔴 Desconectado';
-          indicator.style.backgroundColor = '#f8d7da';
-          indicator.style.borderColor = '#f5c6cb';
-        }
-        
-        if (eventSource) {
-          eventSource.close();
-          eventSource = null;
-        }
-        
-        // Reintentar conexión con backoff exponencial
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          reconnectAttempts++;
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 10000);
-          console.log("🔄 Reintentando conexión SSE en " + (delay / 1000) + " segundos...");
-          setTimeout(conectarSSE, delay);
-        } else {
-          console.error("❌ Máximo de reintentos alcanzado. No se puede conectar SSE.");
-          if (indicator) {
-            indicator.textContent = '❌ Sin conexión';
-          }
-        }
-      };
-    }
-
-    function cerrarSSE() {
-      if (eventSource) {
-        eventSource.close();
-        eventSource = null;
-        console.log("🔌 Conexión SSE cerrada");
-      }
-    }
-
-    function procesarNotificacionSSE(notificacion) {
-      console.log("🔔 Procesando notificación SSE:", notificacion);
-
-      // Mostrar notificación visual
-      if (notificacion.tipo === 'TRANSITO_REALIZADO') {
-        mostrarNotificacionVisual('🚗 Tránsito Realizado', notificacion.mensaje);
-      } else if (notificacion.tipo === 'SALDO_BAJO') {
-        mostrarNotificacionVisual('⚠️ Saldo Bajo', notificacion.mensaje);
-      }
-
-      // Recargar tablero para mostrar datos actualizados
-      console.log("🔄 Recargando tablero...");
-      submit("/propietario/tablero", "");
-    }
-
-    function mostrarNotificacionVisual(titulo, mensaje) {
-      // Crear notificación del navegador si está permitido
-      if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(titulo, { body: mensaje, icon: '/favicon.ico' });
-      }
-
-      // Mostrar alerta visual en la página (opcional)
-      console.log(`🔔 ${titulo}: ${mensaje}`);
-    }
-
-    // Iniciar conexión SSE cuando la página carga
-    document.addEventListener("DOMContentLoaded", function () {
-      console.log("📄 DOM cargado - Iniciando SSE inmediatamente");
-      
-      // Pedir permiso para notificaciones del navegador
-      if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission().then(function(permission) {
-          console.log("Permiso de notificaciones:", permission);
-        });
-      }
-
-      // Conectar SSE INMEDIATAMENTE (sin delay)
-      // Esperar solo 100ms para que la sesión esté lista
-      setTimeout(() => {
-        conectarSSE();
-        console.log("✅ Proceso de conexión SSE iniciado");
-      }, 100);
-    });
-
-    // Cerrar SSE cuando el usuario se va
-    window.addEventListener("beforeunload", function () {
-      cerrarSSE();
-    });
   </script>
 </body>
 </html>

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.SessionAttribute;
 
-import jakarta.servlet.http.HttpSession;
 import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
@@ -32,53 +32,34 @@ import obligatorio.obligatorio.observador.Observador;
 @Scope("session")
 public class ControladorAdmin implements Observador {
 
-    private ConexionNavegador conexionVista;
+    private final ConexionNavegador conexionNavegador;
     
-    public ControladorAdmin(@Autowired ConexionNavegador conexionVista) {
-        this.conexionVista = conexionVista;
-    }
-
-    // Helper para validar sesión
-    private Administrador administradorEnSesion(HttpSession sesionHttp) throws ObligatorioException {
-        Object obj = sesionHttp.getAttribute("usuarioAdmin");
-        if (obj instanceof Administrador a) {
-            return a;
-        }
-        throw new ObligatorioException("Sesión expirada");
+    public ControladorAdmin(@Autowired ConexionNavegador conexionNavegador) {
+        this.conexionNavegador = conexionNavegador;
     }
 
     /**
      * Endpoint inicial que registra al controlador como observador y devuelve datos base.
      */
     @PostMapping("/vistaConectada")
-    public Object vistaConectada(HttpSession sesionHttp) {
-        try {
-            Administrador admin = administradorEnSesion(sesionHttp);
+    public Object vistaConectada(@SessionAttribute(name = "usuarioAdmin") Administrador admin) {
+        // Obtener lista de puestos como DTOs desde el sistema
+        List<PuestoDTO> puestosDTO = Fachada.getInstancia().getPuestosDTO();
 
-            
-            // Obtener lista de puestos como DTOs desde el sistema
-            List<PuestoDTO> puestosDTO = Fachada.getInstancia().getPuestosDTO();
+        // Registrar como observador (única vez por sesión)
+        Fachada.getInstancia().agregarObservador(this);
 
-            // Registrar como observador (única vez por sesión)
-            Fachada.getInstancia().agregarObservador(this);
-
-            return Respuesta.lista(
-                new Respuesta("infoAdmin", admin.getNombreCompleto()),
-                new Respuesta("puestos", puestosDTO)
-            );
-            
-        } catch (ObligatorioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        return Respuesta.lista(
+            new Respuesta("infoAdmin", admin.getNombreCompleto()),
+            new Respuesta("puestos", puestosDTO)
+        );
     }
 
     @PostMapping("/obtenerTarifas")
     public Object obtenerTarifas(
             @RequestParam("nombrePuesto") String nombrePuesto,
-            HttpSession sesionHttp) {
+            @SessionAttribute(name = "usuarioAdmin") Administrador admin) {
         try {
-            administradorEnSesion(sesionHttp);
-            
             // Obtener tarifas como DTOs desde el sistema
             List<TarifaDTO> tarifasDTO = Fachada.getInstancia().getTarifasPorPuesto(nombrePuesto);
 
@@ -96,10 +77,8 @@ public class ControladorAdmin implements Observador {
             @RequestParam("matricula") String matricula,
             @RequestParam("nombrePuesto") String nombrePuesto,
             @RequestParam("fechaHora") String fechaHoraStr,
-            HttpSession sesionHttp) {
+            @SessionAttribute(name = "usuarioAdmin") Administrador admin) {
         try {
-            administradorEnSesion(sesionHttp);
-            
             // Parsear fecha y hora
             LocalDateTime fechaHora = LocalDateTime.parse(fechaHoraStr, 
                 DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -119,33 +98,19 @@ public class ControladorAdmin implements Observador {
         }
     }
 
-    // /** Registrar conexión SSE del navegador. */
-    // @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    // public SseEmitter registrarSSE(HttpSession sesionHttp) {
-    //     try {
-    //         Administrador admin = administradorEnSesion(sesionHttp);
-    //         conexionNavegador.conectarSSE();
-    //         return conexionNavegador.getConexionSSE();
-    //     } catch (ObligatorioException e) {
-    //         return null;
-    //     }
-    // }
-
-    // /** Vista cerrada: quitarse como observador para evitar memory leaks. */
-    // @PostMapping("/vistaCerrada")
-    // public void vistaCerrada(HttpSession sesionHttp) {
-    //     Fachada.getInstancia().quitarObservador(this);
-    //     conexionNavegador.cerrarConexion();
-    // }
+    @PostMapping("/vistaCerrada")
+    public void vistaCerrada() {
+        Fachada.getInstancia().quitarObservador(this);
+    }
 
     /** Implementación del patrón Observador: recibe eventos globales de la Fachada. */
     @Override
     public void actualizar(Object evento, Observable origen) {
-        
+        // Enviar actualizaciones vía SSE cuando sea necesario
         // if(!(evento instanceof Fachada.Eventos)) return;
         // Fachada.Eventos ev = (Fachada.Eventos) evento;
         // switch (ev) {
-        //     case transitoRegistrado -> enviarActualizacionTransitos();
+        //     case transitoRegistrado -> conexionNavegador.enviarJSON(...);
         //     default -> { }
         // }
     }

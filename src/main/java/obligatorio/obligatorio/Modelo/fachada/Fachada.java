@@ -1,17 +1,23 @@
 package obligatorio.obligatorio.Modelo.fachada;
 
-import obligatorio.obligatorio.DTO.PuestoDTO;
-import obligatorio.obligatorio.DTO.TarifaDTO;
-import obligatorio.obligatorio.Modelo.sistemas.SistemaAcceso;
-import obligatorio.obligatorio.Modelo.sistemas.SistemaTablero;
-import obligatorio.obligatorio.Modelo.sistemas.SistemaTransito;
-import obligatorio.obligatorio.Modelo.modelos.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import obligatorio.obligatorio.Controladores.Respuesta;
+import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
+import obligatorio.obligatorio.DTO.TarifaDTO;
+import obligatorio.obligatorio.Modelo.modelos.Administrador;
+import obligatorio.obligatorio.Modelo.modelos.Estado;
+import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
+import obligatorio.obligatorio.Modelo.modelos.Propietario;
+import obligatorio.obligatorio.Modelo.modelos.Puesto;
+import obligatorio.obligatorio.Modelo.modelos.Sesion;
+import obligatorio.obligatorio.Modelo.modelos.Transito;
+import obligatorio.obligatorio.Modelo.sistemas.SistemaAcceso;
+import obligatorio.obligatorio.Modelo.sistemas.SistemaTablero;
+import obligatorio.obligatorio.Modelo.sistemas.SistemaTransito;
 import obligatorio.obligatorio.observador.Observable;
 
 /**
@@ -40,6 +46,7 @@ public class Fachada extends Observable {
         sTransito.registrarTransito(t);
         avisar(Eventos.transitoRegistrado);
     }
+    
     public List<Transito> getTransitos() { return sTransito.getTransitos(); }
 
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
@@ -72,22 +79,20 @@ public class Fachada extends Observable {
     }
 
     public List<Sesion> getSesiones() { return sAcceso.getSesiones(); }
+
     public void logout(Sesion s) {
         sAcceso.logout(s);
         System.out.println("🚪 Logout propietario - Avisando cambioListaSesiones");
         avisar(Eventos.cambioListaSesiones);
     }
+
     public void logoutAdministrador(String cedula) {
         sAcceso.logoutAdministrador(cedula);
         avisar(Eventos.cambioListaSesiones);
     }
-    public void recargarSaldo(Propietario p, BigDecimal monto) throws ObligatorioException {
-        sAcceso.recargarSaldo(p, monto);
-        avisar(Eventos.saldoActualizado);
-        avisar(Eventos.notificacionesActualizadas);
-    }
 
     public List<Respuesta> armarRespuestasTablero(Propietario p) { return sTablero.armarRespuestasTablero(p); }
+
     public int borrarNotificaciones(Propietario p) {
         int borradas = sTablero.borrarNotificaciones(p);
         avisar(Eventos.notificacionesActualizadas);
@@ -96,11 +101,15 @@ public class Fachada extends Observable {
 
     // Métodos para emular tránsito
     public void agregarPuesto(Puesto p) throws ObligatorioException { sTransito.agregarPuesto(p); }
+
     public List<Puesto> getPuestos() { return sTransito.getPuestos(); }
+
     public List<PuestoDTO> getPuestosDTO() { return sTransito.getPuestosDTO(); }
+
     public List<TarifaDTO> getTarifasPorPuesto(String nombrePuesto) throws ObligatorioException {
         return sTransito.getTarifasPorPuesto(nombrePuesto);
     }
+
     public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDateTime fechaHora)
             throws ObligatorioException {
     ResultadoEmulacionDTO dto = sTransito.emularTransito(matricula, nombrePuesto, fechaHora);
