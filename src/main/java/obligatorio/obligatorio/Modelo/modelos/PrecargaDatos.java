@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import obligatorio.obligatorio.Modelo.fachada.Fachada;
-
 public final class PrecargaDatos {
     private final List<Administrador> administradores = new ArrayList<>();
     private final List<Propietario> propietarios = new ArrayList<>();
@@ -40,27 +38,19 @@ public final class PrecargaDatos {
     public List<Transito> getTransitos() { return transitos; }
 
     private void cargar() throws ObligatorioException {
-        Fachada f = Fachada.getInstancia();
-        
-        // ----- Estados eliminados: ahora se usan los estados concretos directamente
-
+        // Solo poblar listas locales, sin usar Fachada ni registrar en sistemas
         // ----- Administradores -----
         Administrador admin1 = new Administrador("a", "a", "Usuario Administrador");
         Administrador admin2 = new Administrador("87654321", "root.123", "Admin Secundario");
         administradores.add(admin1);
         administradores.add(admin2);
-        
-        // Registrar administradores en el sistema
-        f.agregarAdministrador(admin1.getCedula(), admin1.getPassword(), admin1.getNombreCompleto());
-        f.agregarAdministrador(admin2.getCedula(), admin2.getPassword(), admin2.getNombreCompleto());
 
-        // ----- Propietarios (aún sin registrar en SistemaAcceso) -----
+        // ----- Propietarios -----
         Propietario prop1 = new Propietario("1", "1", "Walter",
                 new BigDecimal("2000.00"), new BigDecimal("500.00"), new EstadoPropietarioHabilitado(null));
         Propietario prop2 = new Propietario("2", "2", "josé",
                 new BigDecimal("800.00"), new BigDecimal("200.00"), new EstadoPropietarioHabilitado(null));
 
-        // Actualizar la referencia propietario en el estado
         prop1.setEstadoPropietario(new EstadoPropietarioHabilitado(prop1));
         prop2.setEstadoPropietario(new EstadoPropietarioHabilitado(prop2));
 
@@ -88,10 +78,6 @@ public final class PrecargaDatos {
         Puesto p2 = new Puesto("Peaje Pando", "Ruta Interbalnearia KM 32");
         puestos.add(p1);
         puestos.add(p2);
-        
-        // Registrar puestos en el sistema
-        f.agregarPuesto(p1);
-        f.agregarPuesto(p2);
 
         // ----- Tarifas -----
         Tarifa t11 = new Tarifa(p1, auto,   new BigDecimal("120.00"));
@@ -113,7 +99,7 @@ public final class PrecargaDatos {
         Vehiculo v2 = new Vehiculo("SBC5678", "Camión 3/4", "Azul",  camion, prop1);
         Vehiculo v3 = new Vehiculo("SBD9012", "Street",     "Negro", moto,   prop1); 
         Vehiculo v4 = new Vehiculo("2", "2",      "Rojo",  auto,   prop2);
-        
+
         prop1.agregarVehiculo(v1);
         prop1.agregarVehiculo(v2);
         prop1.agregarVehiculo(v3);
@@ -149,54 +135,8 @@ public final class PrecargaDatos {
         prop2.agregarNotificacion(n21);
         notificaciones.add(n21);
 
-        // ===== AHORA SÍ: registrar propietarios ya poblados en SistemaAcceso =====
-        f.registrarPropietario(prop1);
-        f.registrarPropietario(prop2);
-
-        // ----- Tránsitos (coherentes con tarifas/bonificaciones) -----
-        // v1 (auto) por p1 (tarifa 120) con FRECUENTES => cobra 100
-        BigDecimal base_v1_p1   = t11.getMonto();             // 120.00
-        BigDecimal bonif_v1_p1  = new BigDecimal("20.00");    // ejemplo
-        BigDecimal cobrado_v1_p1= base_v1_p1.subtract(bonif_v1_p1); // 100.00
-        Transito tr1 = new Transito(
-                v1, p1, t11,
-                java.time.LocalDate.of(2025, 11, 15),
-                java.time.LocalTime.of(8, 30),
-                base_v1_p1,
-                cobrado_v1_p1,
-                frecuentes,
-                true);
-
-        // v2 (camión) por p2 (tarifa 270) con EXONERADOS => cobra 0
-        BigDecimal base_v2_p2   = t22.getMonto();             // 270.00
-        Transito tr2 = new Transito(
-                v2, p2, t22,
-                java.time.LocalDate.of(2025, 11, 14),
-                java.time.LocalTime.of(18, 15),
-                base_v2_p2,
-                BigDecimal.ZERO,
-                exonerados,
-                true);
-
-        // v3 (moto) por p1 (tarifa 80) sin bonificación => cobra 80
-        BigDecimal base_v3_p1   = t13.getMonto();             // 80.00
-        Transito tr3 = new Transito(
-                v3, p1, t13,
-                java.time.LocalDate.of(2025, 11, 13),
-                java.time.LocalTime.of(8, 5),
-                base_v3_p1,
-                base_v3_p1,
-                null,
-                true);
-
-        // Registrar en fachada (fuente de verdad de tránsitos)
-        f.registrarTransito(tr1);
-        f.registrarTransito(tr2);
-        f.registrarTransito(tr3);
-
         // Mantener en la lista local (solo referencia/depuración)
-        transitos.add(tr1);
-        transitos.add(tr2);
-        transitos.add(tr3);
+        // Si necesitas registrar en sistemas, hazlo después de la inicialización de Fachada
+        // y llama a métodos de registro desde la propia Fachada
     }
 }
