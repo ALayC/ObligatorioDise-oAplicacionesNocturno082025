@@ -151,4 +151,12 @@ public class Fachada extends Observable {
         public List<obligatorio.obligatorio.Modelo.modelos.Bonificacion> getBonificacionesDefinidas() {
             return precargaDatos.getBonificaciones();
         }
+                    /** Devuelve el propietario por cédula, o null si no existe. */
+            public obligatorio.obligatorio.Modelo.modelos.Propietario getPropietarioPorCedula(String cedula) {
+                if (cedula == null || cedula.isBlank()) return null;
+                for (obligatorio.obligatorio.Modelo.modelos.Propietario p : sAcceso.getPropietarios()) {
+                    if (cedula.equals(p.getCedula())) return p;
+                }
+                return null;
+            }
 }

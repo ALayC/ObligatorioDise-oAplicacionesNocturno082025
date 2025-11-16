@@ -1,19 +1,111 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Asignar Bonificaciones</title>
-    <link rel="stylesheet" href="Estilos.css">
+        <meta charset="UTF-8">
+        <title>Asignar Bonificaciones</title>
+        <link rel="stylesheet" href="Estilos.css">
+        <script src="vistaWeb.js"></script>
+        <script src="sse.js"></script>
+        <script defer src="utilesVista.js"></script>
+        <script>
+            window.urlRegistroSSE = "/asignarBonificaciones/registrarSSE";
+            // Al iniciar la vista, pedir bonificaciones y puestos usando GET
+            document.addEventListener('DOMContentLoaded', function() {
+                fetch('/asignarBonificaciones')
+                    .then(res => res.json())
+                    .then(bonificaciones => mostrar_bonificaciones(bonificaciones));
+                fetch('/asignarBonificaciones/puestos')
+                    .then(res => res.json())
+                    .then(puestos => mostrar_puestos(puestos));
+            });
+            // Procesar bonificaciones y puestos usando funciones genéricas
+            function mostrar_bonificaciones(bonificaciones) {
+                document.getElementById("divBonificaciones").innerHTML = crearListaDesdeJson({
+                    data: bonificaciones,
+                    campoMostrar: "nombre",
+                    id: "bonificacionSelect"
+                });
+            }
+            function mostrar_puestos(puestos) {
+                document.getElementById("divPuestos").innerHTML = crearListaDesdeJson({
+                    data: puestos,
+                    campoMostrar: "nombre",
+                    id: "puestoSelect"
+                });
+            }
+            // Actualizar bonificaciones vía SSE
+            function procesarMensajeSSE(bonificaciones) {
+                mostrar_bonificaciones(bonificaciones);
+                const sseStatus = document.getElementById('sseStatus');
+                if (sseStatus) {
+                    sseStatus.textContent = 'Actualización recibida vía SSE';
+                }
+            }
+        </script>
 </head>
 <body>
-    <h2>Asignar bonificaciones</h2>
-    <div>
-        <label for="bonificacionSelect">Bonificaciones definidas:</label>
-        <select id="bonificacionSelect">
-            <option value="">Cargando...</option>
-        </select>
+    <div class="container">
+    <div class="main-center">
+      <div class="container">
+        <h1>Asignar bonificaciones</h1>
+        <div class="row">
+            <form class="col-izq">
+                <div class="form-group">
+                    <label for="bonificacionSelect">Bonificaciones definidas:</label>
+                    <div id="divBonificaciones"></div>
+                </div>
+                <div class="form-group">
+                    <label for="puestoSelect">Puestos definidos:</label>
+                    <div id="divPuestos"></div>
+                </div>
+            </form>
+            <div class="col-der">
+                <div class="form-group">
+                    <label>Búsqueda de propietario:</label>
+                    <iframe id="iframeBusqueda" src="busqueda-propietario.html" frameborder="0" style="width:100%;height:250px;"></iframe>
+                </div>
+                <div id="panelPropietario"></div>
+            </div>
+        </div>
+      </div>
     </div>
-    <div id="sseStatus" style="margin-top:10px;color:green;"></div>
-    <script src="asignar-bonificaciones.js"></script>
-</body>
+
+        <script>
+            // Esta función será llamada desde el iframe cuando se seleccione un propietario
+            function seleccionarPropietario(dto) {
+                let bonificacionesHtml = '';
+                if (dto.bonificacionesAsignadas && dto.bonificacionesAsignadas.length > 0) {
+                    bonificacionesHtml = `<table><thead><tr><th>Bonificación</th><th>Puesto</th></tr></thead><tbody>`;
+                    dto.bonificacionesAsignadas.forEach(b => {
+                        bonificacionesHtml += `<tr><td>${b.bonificacion || b.nombreBonificacion}</td><td>${b.puesto || b.nombrePuesto}</td></tr>`;
+                    });
+                    bonificacionesHtml += `</tbody></table>`;
+                } else {
+                    bonificacionesHtml = '<p>Sin bonificaciones asignadas</p>';
+                }
+                let html = `
+                    <div class="card" style="margin-top:10px;">
+                        <h3>Propietario seleccionado</h3>
+                        <p><strong>Nombre:</strong> ${dto.nombreCompleto}</p>
+                        <p><strong>Estado:</strong> ${dto.estado}</p>
+                        <h4>Bonificaciones asignadas</h4>
+                        ${bonificacionesHtml}
+                    </div>
+                `;
+                document.getElementById("panelPropietario").innerHTML = html;
+            }
+        </script>
+    <!-- No se necesita asignar-bonificaciones.js -->
+    <script>
+        function buscarPropietario(event) {
+            event.preventDefault();
+            submit("/asignarBonificaciones/buscarPropietario", serializarFormulario("formBuscarPropietario"));
+        }
+        function mostrar_resultadoBusqueda(dto) {
+            document.getElementById("resultadoBusqueda").innerHTML = dto
+                ? `<p>Propietario: ${dto.nombreCompleto} (${dto.estado})</p>`
+                : "<p>No se encontró el propietario</p>";
+        }
+    </script>
+    </body>
 </html>

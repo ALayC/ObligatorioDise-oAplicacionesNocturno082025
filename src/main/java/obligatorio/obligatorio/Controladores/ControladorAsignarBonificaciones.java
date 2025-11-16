@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.Bonificacion;
 import obligatorio.obligatorio.Modelo.modelos.ConexionNavegador;
@@ -60,6 +61,35 @@ public class ControladorAsignarBonificaciones implements Observador {
     @PostMapping("/vistaCerrada")
     public void vistaCerrada() {
         fachada.quitarObservador(this);
+    }
+    
+    @GetMapping("/puestos")
+    public List<PuestoDTO> obtenerPuestos() {
+        return fachada.getPuestosDTO();
+    }
+
+
+
+    @PostMapping("/buscarPropietario")
+    public Respuesta buscarPropietario(@SessionAttribute(name = "usuarioAdmin") obligatorio.obligatorio.Modelo.modelos.Administrador admin,
+                                       @org.springframework.web.bind.annotation.RequestParam String cedula) {
+        obligatorio.obligatorio.Modelo.modelos.Propietario p = fachada.getPropietarioPorCedula(cedula);
+        if (p == null) {
+            return new Respuesta("resultadoBusqueda", null);
+        }
+        String estado = p.getEstadoPropietario() != null ? p.getEstadoPropietario().getNombre() : "";
+        java.util.List<obligatorio.obligatorio.DTO.BonificacionAsignadaDTO> bonificacionesAsignadas = new java.util.ArrayList<>();
+        for (obligatorio.obligatorio.Modelo.modelos.AsignacionBonificacion asignacion : p.getAsignaciones()) {
+            String nombreBonificacion = asignacion.getBonificacion().getNombre();
+            String nombrePuesto = asignacion.getPuesto().getNombre();
+            bonificacionesAsignadas.add(new obligatorio.obligatorio.DTO.BonificacionAsignadaDTO(nombreBonificacion, nombrePuesto, asignacion.getFechaAsignacion()));
+        }
+        obligatorio.obligatorio.DTO.PropietarioBonificacionesDTO dto = new obligatorio.obligatorio.DTO.PropietarioBonificacionesDTO(
+            p.getNombreCompleto(),
+            estado,
+            bonificacionesAsignadas
+        );
+        return new Respuesta("resultadoBusqueda", dto);
     }
 
     @Override
