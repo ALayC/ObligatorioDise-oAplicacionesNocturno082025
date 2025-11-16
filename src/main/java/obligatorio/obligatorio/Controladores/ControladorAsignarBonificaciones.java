@@ -49,15 +49,12 @@ public class ControladorAsignarBonificaciones implements Observador {
             }
             Bonificacion bon = null;
             Puesto pst = null;
-            System.out.println("Valor recibido de bonificacion: " + bonificacion);
-            System.out.println("Bonificaciones definidas:");
             for (Bonificacion b : fachada.getBonificacionesDefinidas()) {
                 System.out.println("- " + b.getNombre());
                 if (b.getNombre().equals(bonificacion)) {
                     bon = b;
                 }
             }
-            System.out.println("Valor encontrado para bon: " + (bon != null ? bon.getNombre() : "null"));
             for (Puesto pt : fachada.getPuestos()) {
                 if (pt.getNombre().equals(puesto)) {
                     pst = pt;
@@ -80,11 +77,6 @@ public class ControladorAsignarBonificaciones implements Observador {
                 p.asignarBonificacion(bon, pst);
             } catch (Exception e) {
                 return new Respuesta("errorAsignacion", "Error al asignar la bonificación: " + e.getMessage());
-            }
-            // Loguear en consola las bonificaciones del propietario
-            System.out.println("Bonificaciones actuales del propietario " + p.getNombreCompleto() + ":");
-            for (AsignacionBonificacion asignacion : p.getAsignaciones()) {
-                System.out.println("Bonificación: " + asignacion.getBonificacion().getNombre() + ", Puesto: " + asignacion.getPuesto().getNombre() + ", Fecha: " + asignacion.getFechaAsignacion());
             }
             // Actualizar DTO y devolver propietario actualizado
             String estado = p.getEstadoPropietario() != null ? p.getEstadoPropietario().getNombre() : "";

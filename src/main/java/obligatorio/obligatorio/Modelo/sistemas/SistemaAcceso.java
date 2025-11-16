@@ -50,7 +50,7 @@ public class SistemaAcceso {
         p.setEstadoPropietario(crearEstadoPropietarioParaPropietario(p, nombreEstado));
         agregarPropietario(p);
     }
-
+    //TODO: Revisar donde va este metodo
     // Helper para crear el estado concreto y asociar el propietario
     private EstadoPropietario crearEstadoPropietarioParaPropietario(Propietario p, String nombreEstado) {
         if (nombreEstado == null || nombreEstado.equalsIgnoreCase("Habilitado")) {
