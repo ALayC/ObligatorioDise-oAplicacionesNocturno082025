@@ -107,4 +107,9 @@ public final class Propietario extends Observable {
     public boolean equals(Object o){ return o instanceof Propietario p && getCedula().equals(p.getCedula()); }
     @Override
     public int hashCode(){ return Objects.hash(getCedula()); }
+
+    public boolean estaHabilitado() {
+        // Si el estado es una instancia de EstadoPropietarioDeshabilitado, no está habilitado
+        return !(estadoPropietario instanceof EstadoPropietarioDeshabilitado);
+    }
 }

@@ -48,7 +48,7 @@
 
             if (respuesta.id === "resultadoBusqueda") {
                 const dto = respuesta.parametro;
-                seleccionarPropietario(dto);
+                mostrarPanelPropietario(dto);
             }
         }
 
@@ -76,6 +76,64 @@
             `;
         }
     </script>
+    <script>
+        let propietarioActual = null;
+        let cedulaBuscada = null;
+
+        function actualizarEstadoBotonAsignar() {
+            const bonificacion = document.getElementById('bonificacionSelect')?.value;
+            const puesto = document.getElementById('puestoSelect')?.value;
+            const habilitado = propietarioActual && bonificacion && puesto && bonificacion !== "-1" && puesto !== "-1";
+            document.getElementById('btnAsignarBonificacion').disabled = !habilitado;
+        }
+
+        document.addEventListener('change', function (e) {
+            if (["bonificacionSelect", "puestoSelect"].includes(e.target.id)) {
+                actualizarEstadoBotonAsignar();
+            }
+        });
+
+        document.getElementById('btnAsignarBonificacion').addEventListener('click', function () {
+            const bonificacion = document.getElementById('bonificacionSelect').value;
+            const puesto = document.getElementById('puestoSelect').value;
+            if (!propietarioActual || !bonificacion || !puesto || bonificacion === "-1" || puesto === "-1") return;
+
+            if (!cedulaBuscada) {
+                alert("Primero debe buscar un propietario");
+                return;
+            }
+
+            // Enviar los valores seleccionados (string, no índice)
+            submit(
+                '/asignarBonificaciones/asignar',
+                `cedula=${encodeURIComponent(cedulaBuscada)}&bonificacion=${encodeURIComponent(bonificacion)}&puesto=${encodeURIComponent(puesto)}`
+            );
+        });
+
+        function mostrarPanelPropietario(dto) {
+            propietarioActual = dto;
+            actualizarEstadoBotonAsignar();
+            let bonificacionesHtml = '';
+            if (dto && dto.bonificacionesAsignadas?.length > 0) {
+                bonificacionesHtml = `<table><thead><tr><th>Bonificación</th><th>Puesto</th></tr></thead><tbody>`;
+                dto.bonificacionesAsignadas.forEach(b => {
+                    bonificacionesHtml += `<tr><td>${b.bonificacion || b.nombreBonificacion}</td><td>${b.puesto || b.nombrePuesto}</td></tr>`;
+                });
+                bonificacionesHtml += `</tbody></table>`;
+            } else {
+                bonificacionesHtml = '<p>Sin bonificaciones asignadas</p>';
+            }
+            document.getElementById("panelPropietario").innerHTML = dto ? `
+                <div class="card">
+                    <h3>Propietario</h3>
+                    <p><strong>Nombre:</strong> ${dto.nombreCompleto}</p>
+                    <p><strong>Estado:</strong> ${dto.estado}</p>
+                    <h4>Bonificaciones asignadas</h4>
+                    ${bonificacionesHtml}
+                </div>
+            ` : '<p>No existe el propietario</p>';
+        }
+    </script>
 </head>
 
 <body>
@@ -100,6 +158,10 @@
                     <div class="form-group">
                         <label for="puestoSelect">Puestos definidos</label>
                         <div id="divPuestos"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <button id="btnAsignarBonificacion" type="button" disabled>Asignar bonificación</button>
                     </div>
 
                 </div>
