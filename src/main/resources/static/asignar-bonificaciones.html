@@ -21,27 +21,35 @@
                 .then(puestos => mostrar_puestos(puestos));
         });
 
-        function mostrar_bonificaciones(bonificaciones) {
-            document.getElementById("divBonificaciones").innerHTML = crearListaDesdeJson({
-                data: bonificaciones,
-                campoMostrar: "nombre",
-                id: "bonificacionSelect"
-            });
-        }
+function mostrar_bonificaciones(bonificaciones) {
+    document.getElementById("divBonificaciones").innerHTML = crearListaDesdeJson({
+        data: bonificaciones,
+        campoMostrar: "nombre",
+        campoValor: "nombre",  
+        id: "bonificacionSelect"
+    });
+}
 
-        function mostrar_puestos(puestos) {
-            document.getElementById("divPuestos").innerHTML = crearListaDesdeJson({
-                data: puestos,
-                campoMostrar: "nombre",
-                id: "puestoSelect"
-            });
-        }
+function mostrar_puestos(puestos) {
+    document.getElementById("divPuestos").innerHTML = crearListaDesdeJson({
+        data: puestos,
+        campoMostrar: "nombre",
+        campoValor: "nombre",        
+        id: "puestoSelect"
+    });
+}
 
-        function buscarPropietario(event) {
-            event.preventDefault();
-            submit("/asignarBonificaciones/buscarPropietario",
-                serializarFormulario("formBuscarPropietario"));
-        }
+function buscarPropietario(event) {
+    event.preventDefault();
+
+    const inputCedula = document.getElementById('cedulaPropietario');
+    cedulaBuscada = inputCedula ? inputCedula.value : null;
+
+    submit(
+        "/asignarBonificaciones/buscarPropietario",
+        serializarFormulario("formBuscarPropietario")
+    );
+}
 
         function procesarRespuestaSubmit(text) {
             let respuesta = typeof text === "string" ? JSON.parse(text) : text;
@@ -93,22 +101,29 @@
             }
         });
 
-        document.getElementById('btnAsignarBonificacion').addEventListener('click', function () {
-            const bonificacion = document.getElementById('bonificacionSelect').value;
-            const puesto = document.getElementById('puestoSelect').value;
-            if (!propietarioActual || !bonificacion || !puesto || bonificacion === "-1" || puesto === "-1") return;
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('btnAsignarBonificacion');
+    if (!btn) return;
 
-            if (!cedulaBuscada) {
-                alert("Primero debe buscar un propietario");
-                return;
-            }
+    btn.addEventListener('click', function () {
+        const bonificacion = document.getElementById('bonificacionSelect')?.value;
+        const puesto = document.getElementById('puestoSelect')?.value;
 
-            // Enviar los valores seleccionados (string, no índice)
-            submit(
-                '/asignarBonificaciones/asignar',
-                `cedula=${encodeURIComponent(cedulaBuscada)}&bonificacion=${encodeURIComponent(bonificacion)}&puesto=${encodeURIComponent(puesto)}`
-            );
-        });
+        if (!propietarioActual || !bonificacion || !puesto || bonificacion === "-1" || puesto === "-1") {
+            return;
+        }
+
+        if (!cedulaBuscada) {
+            alert("Primero debe buscar un propietario");
+            return;
+        }
+
+        submit(
+            '/asignarBonificaciones/asignar',
+            `cedula=${encodeURIComponent(cedulaBuscada)}&bonificacion=${encodeURIComponent(bonificacion)}&puesto=${encodeURIComponent(puesto)}`
+        );
+    });
+});
 
         function mostrarPanelPropietario(dto) {
             propietarioActual = dto;

@@ -109,14 +109,14 @@ public final class PrecargaDatos {
 
         // ----- Asignaciones de bonificación -----
         AsignacionBonificacion a1 = new AsignacionBonificacion(prop1, p1, frecuentes,  java.time.LocalDate.now().minusDays(5));
-        AsignacionBonificacion a2 = new AsignacionBonificacion(prop1, p2, exonerados,  java.time.LocalDate.now().minusDays(2));
+        //AsignacionBonificacion a2 = new AsignacionBonificacion(prop1, p2, exonerados,  java.time.LocalDate.now().minusDays(2));
         AsignacionBonificacion a3 = new AsignacionBonificacion(prop2, p1, trabajadores,java.time.LocalDate.now().minusDays(1));
 
         prop1.agregarAsignacion(a1);
-        prop1.agregarAsignacion(a2);
+        //prop1.agregarAsignacion(a2);
         prop2.agregarAsignacion(a3);
 
-        asignaciones.add(a1); asignaciones.add(a2); asignaciones.add(a3);
+        asignaciones.add(a1); /*asignaciones.add(a2);*/ asignaciones.add(a3);
 
         // ----- Notificaciones -----
         Notificacion n11 = new Notificacion(
