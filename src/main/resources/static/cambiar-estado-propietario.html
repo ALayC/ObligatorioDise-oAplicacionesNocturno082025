@@ -9,24 +9,40 @@
     <script defer src="utilesVista.js"></script>
 </head>
 <body>
-    <div class="card">
-        <h2>Cambiar estado de propietario</h2>
-        <p>Ingrese la cédula, revise el estado actual y seleccione un nuevo estado (datos de ejemplo).</p>
-        <form id="formBuscar">
-            <label for="cedula">Cédula de identidad</label>
-            <input type="text" id="cedula" name="cedula">
-            <button type="submit">Buscar</button>
-        </form>
-        <div id="datosPropietario" style="display:none;">
-            <p><strong>Nombre:</strong> <span id="nombrePropietario"></span></p>
-            <p><strong>Estado actual:</strong> <span id="estadoActual"></span></p>
-            <form id="formCambiarEstado">
-                <label for="estados">Estados definidos</label>
-                <select id="estados" name="estados"></select>
-                <button type="submit">Cambiar estado</button>
-            </form>
-            <p id="mensajeEstado"></p>
+    <div class="login-container" style="max-width: 900px; text-align: left;">
+        <h2 style="margin-bottom: 10px;">Cambiar estado de propietario</h2>
+        <p style="color: #555; margin-bottom: 18px;">Ingrese la cédula, revise el estado actual y seleccione un nuevo estado.</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
+            <!-- Columna izquierda: cédula y búsqueda -->
+            <div>
+                <label style="font-weight: bold; margin-bottom: 8px; display: block;">Cédula de identidad</label>
+                <form id="formBuscar" style="margin-bottom: 18px;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="text" id="cedula" name="cedula" required />
+                    </div>
+                    <button type="submit" style="width: 100%;">Buscar</button>
+                </form>
+                <div id="datosPropietario" style="display:none;">
+                    <div class="card" style="margin-top:10px;">
+                        <h3>Propietario</h3>
+                        <p><strong>Nombre:</strong> <span id="nombrePropietario"></span></p>
+                        <p><strong>Estado actual:</strong> <span id="estadoActual"></span></p>
+                    </div>
+                </div>
+            </div>
+            <!-- Columna derecha: estados -->
+            <div>
+                <label style="font-weight: bold; margin-bottom: 8px; display: block;">Estados definidos</label>
+                <form id="formCambiarEstado">
+                    <div class="input-group">
+                        <select id="estados" name="estados"></select>
+                    </div>
+                    <button type="submit" style="width: 100%;">Cambiar estado</button>
+                </form>
+                <p id="mensajeEstado" style="margin-top: 18px;"></p>
+            </div>
         </div>
+        <footer style="margin-top: 18px; color: #888; font-size: 13px; text-align:center;">© 2025 – Administración</footer>
     </div>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
