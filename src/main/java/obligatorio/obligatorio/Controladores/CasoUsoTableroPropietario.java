@@ -54,7 +54,7 @@ public class CasoUsoTableroPropietario implements Observador {
         System.out.println("[LOG] CasoUsoTableroPropietario.actualizar llamado. Evento: " + evento);
         if (evento instanceof Propietario.Eventos ev) {
             switch (ev) {
-                case TRANSITO_REALIZADO, SALDO_BAJO -> {
+                case TRANSITO_REALIZADO, SALDO_BAJO, CAMBIO_ESTADO -> {
                     System.out.println("[LOG] Enviando SSE al propietario: " + propietario.getNombreCompleto());
                     conexionNavegador.enviarJSON(Fachada.getInstancia().armarRespuestasTablero(propietario));
                 }

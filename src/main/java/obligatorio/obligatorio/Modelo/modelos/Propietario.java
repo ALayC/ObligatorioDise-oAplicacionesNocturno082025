@@ -1,3 +1,4 @@
+
 package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
@@ -14,7 +15,8 @@ public final class Propietario extends Observable {
     
     public enum Eventos { 
         TRANSITO_REALIZADO, 
-        SALDO_BAJO 
+        SALDO_BAJO, 
+        CAMBIO_ESTADO
     }
     
     private String cedula;
@@ -44,7 +46,6 @@ public final class Propietario extends Observable {
     public void setPassword(String password) { this.password = password; }
     public String getNombreCompleto() { return nombreCompleto; }
     public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
-
     public BigDecimal getSaldoActual() { return saldoActual; }
     public void setSaldoActual(BigDecimal saldoActual) { this.saldoActual = saldoActual; }
     public BigDecimal getSaldoMinimoAlerta() { return saldoMinimoAlerta; }
@@ -56,7 +57,7 @@ public final class Propietario extends Observable {
         this.estadoPropietario = Objects.requireNonNull(estadoPropietario);
     }
         // Delegación de la acción de asignar bonificación al estado actual
-        public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
+    public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
             estadoPropietario.asignarBonificacion(bonificacion, puesto);
         }
     public Set<Vehiculo> getVehiculos() { return Collections.unmodifiableSet(vehiculos); }
@@ -109,7 +110,31 @@ public final class Propietario extends Observable {
     public int hashCode(){ return Objects.hash(getCedula()); }
 
     public boolean estaHabilitado() {
-        // Si el estado es una instancia de EstadoPropietarioDeshabilitado, no está habilitado
         return !(estadoPropietario instanceof EstadoPropietarioDeshabilitado);
+    }
+
+    public String cambiarEstadoYNotificar(String nuevoEstado) {
+        if (estadoPropietario.getNombre().equals(nuevoEstado)) {
+            return "El propietario ya está en estado " + estadoPropietario.getNombre();
+        }
+        setEstadoPropietario(crearEstadoPropietarioParaPropietario(this, nuevoEstado));
+        notificaciones.add(new Notificacion("Se ha cambiado tu estado en el sistema. Tu estado actual es " + nuevoEstado, java.time.LocalDate.now()));
+        avisar(Eventos.CAMBIO_ESTADO); // Notifica a los observadores del cambio de estado
+        return "Estado cambiado correctamente";
+    }
+
+    // Helper para crear el estado concreto y asociar el propietario
+    private EstadoPropietario crearEstadoPropietarioParaPropietario(Propietario p, String nombreEstado) {
+        if (nombreEstado == null || nombreEstado.equalsIgnoreCase("Habilitado")) {
+            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioHabilitado(p);
+        } else if (nombreEstado.equalsIgnoreCase("Deshabilitado")) {
+            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioDeshabilitado(p);
+        } else if (nombreEstado.equalsIgnoreCase("Suspendido")) {
+            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioSuspendido(p);
+        } else if (nombreEstado.equalsIgnoreCase("Penalizado")) {
+            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioPenalizado(p);
+        } else {
+            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioHabilitado(p);
+        }
     }
 }

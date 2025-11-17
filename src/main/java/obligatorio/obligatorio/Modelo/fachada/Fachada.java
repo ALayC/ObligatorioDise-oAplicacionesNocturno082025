@@ -25,8 +25,18 @@ import obligatorio.obligatorio.observador.Observable;
  * Centraliza los avisos de eventos del dominio hacia los observadores (controladores en sesión, etc.).
  */
 public class Fachada extends Observable {
+            /** Cambia el estado del propietario y registra la notificación. */
+    public String cambiarEstadoPropietarioYNotificar(String cedula, String nuevoEstado) {
+        Propietario propietario = getPropietarioPorCedula(cedula);
+        if (propietario == null) {
+            return "No existe el propietario";
+        }
+        return propietario.cambiarEstadoYNotificar(nuevoEstado);
+            }
+
+
         /** Registra los datos precargados en los sistemas internos. Llamar tras inicialización. */
-        public void registrarDatosPrecargados() throws ObligatorioException {
+    public void registrarDatosPrecargados() throws ObligatorioException {
             // Administradores
             for (obligatorio.obligatorio.Modelo.modelos.Administrador admin : precargaDatos.getAdministradores()) {
                 agregarAdministrador(admin.getCedula(), admin.getPassword(), admin.getNombreCompleto());
@@ -56,8 +66,7 @@ public class Fachada extends Observable {
     private final SistemaAcceso sAcceso = new SistemaAcceso();
     private final SistemaTablero sTablero = new SistemaTablero();
     private final SistemaTransito sTransito = new SistemaTransito(sAcceso);
-        private final obligatorio.obligatorio.Modelo.modelos.PrecargaDatos precargaDatos;
-
+    private final obligatorio.obligatorio.Modelo.modelos.PrecargaDatos precargaDatos;
         {
             obligatorio.obligatorio.Modelo.modelos.PrecargaDatos tempPrecarga = null;
             try {
@@ -137,7 +146,7 @@ public class Fachada extends Observable {
         return sTransito.getTarifasPorPuesto(nombrePuesto);
     }
 
-        public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
+    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
                 throws ObligatorioException {
             ResultadoEmulacionDTO dto = sTransito.emularTransito(matricula, nombrePuesto, fecha, hora);
             System.out.println("🚗 Tránsito emulado - Avisando eventos: transitoRegistrado, saldoActualizado, notificacionesActualizadas");
@@ -148,11 +157,11 @@ public class Fachada extends Observable {
             return dto;
         }
         /** Devuelve la lista de bonificaciones definidas en el sistema. */
-        public List<obligatorio.obligatorio.Modelo.modelos.Bonificacion> getBonificacionesDefinidas() {
+    public List<obligatorio.obligatorio.Modelo.modelos.Bonificacion> getBonificacionesDefinidas() {
             return precargaDatos.getBonificaciones();
         }
                     /** Devuelve el propietario por cédula, o null si no existe. */
-            public obligatorio.obligatorio.Modelo.modelos.Propietario getPropietarioPorCedula(String cedula) {
+    public obligatorio.obligatorio.Modelo.modelos.Propietario getPropietarioPorCedula(String cedula) {
                 if (cedula == null || cedula.isBlank()) return null;
                 for (obligatorio.obligatorio.Modelo.modelos.Propietario p : sAcceso.getPropietarios()) {
                     if (cedula.equals(p.getCedula())) return p;

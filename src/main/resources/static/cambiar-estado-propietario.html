@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cambiar estado de propietario</title>
+    <link rel="stylesheet" href="Estilos.css">
+    <script src="vistaWeb.js"></script>
+    <script src="sse.js"></script>
+    <script defer src="utilesVista.js"></script>
+</head>
+<body>
+    <div class="card">
+        <h2>Cambiar estado de propietario</h2>
+        <p>Ingrese la cédula, revise el estado actual y seleccione un nuevo estado (datos de ejemplo).</p>
+        <form id="formBuscar">
+            <label for="cedula">Cédula de identidad</label>
+            <input type="text" id="cedula" name="cedula">
+            <button type="submit">Buscar</button>
+        </form>
+        <div id="datosPropietario" style="display:none;">
+            <p><strong>Nombre:</strong> <span id="nombrePropietario"></span></p>
+            <p><strong>Estado actual:</strong> <span id="estadoActual"></span></p>
+            <form id="formCambiarEstado">
+                <label for="estados">Estados definidos</label>
+                <select id="estados" name="estados"></select>
+                <button type="submit">Cambiar estado</button>
+            </form>
+            <p id="mensajeEstado"></p>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const formBuscar = document.getElementById('formBuscar');
+        const formCambiarEstado = document.getElementById('formCambiarEstado');
+        const cedulaInput = document.getElementById('cedula');
+        const nombrePropietario = document.getElementById('nombrePropietario');
+        const estadoActual = document.getElementById('estadoActual');
+        const estadosSelect = document.getElementById('estados');
+        const datosPropietario = document.getElementById('datosPropietario');
+        const mensajeEstado = document.getElementById('mensajeEstado');
+
+        // Buscar propietario
+        formBuscar.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cedula = cedulaInput.value;
+            fetch(`/cambiar-estado-propietario/buscar?cedula=${cedula}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log('[buscar] data recibida:', data);
+                    if (!data || !data.cedula) {
+                        mensajeEstado.textContent = 'No existe el propietario';
+                        datosPropietario.style.display = 'none';
+                        return;
+                    }
+                    // Mostrar nombre y estado actual como en asignar bonificaciones
+                    nombrePropietario.textContent = data.nombreCompleto;
+                    estadoActual.textContent = data.estado;
+                    // Obtener estados
+                    fetch('/cambiar-estado-propietario/estados')
+                        .then(res => res.json())
+                        .then(estados => {
+                            estadosSelect.innerHTML = '';
+                            estados.forEach(est => {
+                                const option = document.createElement('option');
+                                option.value = est;
+                                option.textContent = est;
+                                if (est === data.estado) option.selected = true;
+                                estadosSelect.appendChild(option);
+                            });
+                            datosPropietario.style.display = '';
+                            mensajeEstado.textContent = '';
+                        });
+                });
+        });
+
+        // Cambiar estado
+        formCambiarEstado.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cedula = cedulaInput.value;
+            const nuevoEstado = estadosSelect.value;
+            fetch(`/cambiar-estado-propietario/cambiar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `cedula=${encodeURIComponent(cedula)}&nuevoEstado=${encodeURIComponent(nuevoEstado)}`
+            })
+            .then(res => res.text())
+            .then(msg => {
+                mensajeEstado.textContent = msg;
+                // Actualizar estado actual si fue exitoso
+                if (msg.includes('correctamente')) {
+                    estadoActual.textContent = nuevoEstado;
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>
