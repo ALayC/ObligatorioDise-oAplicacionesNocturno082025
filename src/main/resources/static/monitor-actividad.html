@@ -24,89 +24,58 @@
   <script defer src="utilesVista.js"></script>
 </head>
 <body>
-  <div class="wrap">
-    <!-- Barra superior -->
-    <div class="topbar">
-      <h2>CU: Emular tránsito</h2>
-      <div>
-        <span id="nombreAdmin" style="margin-right: 15px; font-weight: bold;"></span>
-        <a href="#" onclick="logout()">Salir</a>
-      </div>
-    </div>
-
-    <!-- Contenido principal -->
-    <div class="container" style="max-width: 1100px;">
-      <!-- Emular tránsito -->
-      <div class="card">
-        <h3>Emular tránsito</h3>
-        <p style="color: #666; margin-bottom: 20px;">Seleccione un puesto, verifique sus tarifas, ingrese una matrícula y emule un tránsito.</p>
-        
-        <form id="formEmular" onsubmit="handleEmularTransito(event)">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            
-            <!-- Columna izquierda: Puesto y matrícula -->
-            <div>
-              <div class="form-group">
-                <label for="puesto"><strong>Puesto</strong></label>
-                <select id="puesto" name="puesto" required onchange="cargarTarifas()">
-                  <option value="">-- Seleccione un puesto --</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="matricula"><strong>Matrícula</strong></label>
-                <input type="text" id="matricula" name="matricula" 
-                       placeholder="Ej: ABC1234" required>
-              </div>
-
-              <div class="form-group">
-                <label for="fecha"><strong>Fecha del tránsito</strong></label>
-                <input type="date" id="fecha" name="fecha" required>
-              </div>
-              <div class="form-group">
-                <label for="hora"><strong>Hora del tránsito</strong></label>
-                <input type="time" id="hora" name="hora" required>
-              </div>
-
-              <button type="submit" class="btn">Emular tránsito</button>
-            </div>
-
-            <!-- Columna derecha: Tarifas del puesto -->
-            <div>
-              <div class="form-group">
-                <label><strong>Tarifas del puesto</strong></label>
-                <table style="width: 100%; margin-top: 10px;">
-                  <thead>
-                    <tr>
-                      <th>Categoría</th>
-                      <th>Monto</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tbodyTarifas">
-                    <tr><td colspan="2" style="text-align: center; color: #999;">Se muestran categoría y monto actuales del puesto seleccionado.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
+  <div class="login-container" style="max-width: 900px;">
+    <h2 style="text-align:left; margin-bottom: 10px;">Emular tránsito</h2>
+    <p style="color: #555; margin-bottom: 18px; text-align:left;">Seleccione un puesto, verifique sus tarifas, ingrese una matrícula y emule un tránsito.</p>
+    <form id="formEmular" onsubmit="handleEmularTransito(event)">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
+        <!-- Columna izquierda: Puesto y matrícula -->
+        <div>
+          <div class="input-group">
+            <label for="puesto">Puesto</label>
+            <select id="puesto" name="puesto" required onchange="cargarTarifas()">
+              <option value="">-- Seleccione un puesto --</option>
+            </select>
           </div>
-        </form>
-
-  <div style="margin-top:25px"><strong>Total tránsitos registrados:</strong> <span id="spanTotalTransitos">0</span></div>
-  <!-- Resultado -->
-        <div id="resultado" style="margin-top: 30px; display: none;">
-          <h4>Resultado</h4>
-          <p><strong>Propietario:</strong> <span id="resPropietario"></span></p>
-          <p><strong>Categoría:</strong> <span id="resCategoria"></span></p>
-          <p><strong>Bonificación:</strong> <span id="resBonificacion"></span></p>
-          <p><strong>Costo del tránsito:</strong> <span id="resCosto"></span></p>
-          <p><strong>Saldo luego del tránsito:</strong> <span id="resSaldo"></span></p>
+          <div class="input-group">
+            <label for="matricula">Matrícula</label>
+            <input type="text" id="matricula" name="matricula" placeholder="Ej: ABC1234" required />
+          </div>
+          <div class="input-group">
+            <label for="fecha">Fecha y hora del tránsito</label>
+            <input type="datetime-local" id="fechaHora" name="fechaHora" required />
+          </div>
+          <button type="submit" style="width: 100%;">Emular tránsito</button>
         </div>
-
+        <!-- Columna derecha: Tarifas del puesto -->
+        <div>
+          <label style="font-weight: bold; margin-bottom: 8px; display: block;">Tarifas del puesto</label>
+          <table style="width: 100%; margin-top: 10px;">
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Monto</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTarifas">
+              <tr><td colspan="2" style="text-align: center; color: #999;">Se muestran categoría y monto actuales del puesto seleccionado.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-
+    </form>
+    <div style="margin-top:25px"><strong>Total tránsitos registrados:</strong> <span id="spanTotalTransitos">0</span></div>
+    <div id="resultado" style="margin-top: 30px; display: none; text-align:left;">
+      <h4>Resultado</h4>
+      <p><strong>Propietario:</strong> <span id="resPropietario"></span></p>
+      <p><strong>Categoría:</strong> <span id="resCategoria"></span></p>
+      <p><strong>Bonificación:</strong> <span id="resBonificacion"></span></p>
+      <p><strong>Costo del tránsito:</strong> <span id="resCosto"></span></p>
+      <p><strong>Saldo luego del tránsito:</strong> <span id="resSaldo"></span></p>
     </div>
+    <footer style="margin-top: 18px; color: #888; font-size: 13px; text-align:center;">© 2025 – Emular tránsitos</footer>
   </div>
+
 
   <script>
     let puestosData = [];
@@ -176,18 +145,19 @@
     // Función para emular tránsito
     function handleEmularTransito(event) {
       event.preventDefault();
-      
       // Limpiar resultado anterior
       document.getElementById('resultado').style.display = 'none';
-
       const formData = new FormData(event.target);
       const params = new URLSearchParams();
-      
       params.append('nombrePuesto', formData.get('puesto'));
       params.append('matricula', formData.get('matricula'));
-      params.append('fecha', formData.get('fecha'));
-      params.append('hora', formData.get('hora'));
-
+      // fechaHora en formato yyyy-MM-ddTHH:mm
+      const fechaHora = formData.get('fechaHora');
+      if (fechaHora) {
+        const [fecha, hora] = fechaHora.split('T');
+        params.append('fecha', fecha);
+        params.append('hora', hora);
+      }
       submit("/admin/emularTransito", params.toString());
     }
 
@@ -217,8 +187,11 @@
     // Inicializar fecha y hora actual
     document.addEventListener("DOMContentLoaded", function() {
       const now = new Date();
-      document.getElementById('fecha').value = now.toISOString().slice(0, 10);
-      document.getElementById('hora').value = now.toTimeString().slice(0, 5);
+      // Formato: yyyy-MM-ddTHH:mm
+      const pad = n => n.toString().padStart(2, '0');
+      const local = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const fechaHoraInput = document.getElementById('fechaHora');
+      if (fechaHoraInput) fechaHoraInput.value = local;
     });
   </script>
 </body>
