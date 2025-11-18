@@ -131,12 +131,6 @@ public class ControladorAdmin implements Observador {
                     // conexionNavegador.enviarJSON(Fachada.getInstancia().getNotificacionesGlobales());
                 }
             }
-            case cambioListaSesiones -> {
-                // Actualizar lista de sesiones si el admin lo requiere
-                if (conexionNavegador.getConexionSSE() != null) {
-                    conexionNavegador.enviarJSON(Fachada.getInstancia().getSesiones());
-                }
-            }
         }
     }
 

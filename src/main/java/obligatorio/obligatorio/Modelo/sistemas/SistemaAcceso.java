@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.modelos.EstadoPropietario;
 import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioDeshabilitado;
@@ -86,8 +85,6 @@ public class SistemaAcceso {
                     throw new ObligatorioException("Usuario deshabilitado, no puede ingresar al sistema");
                 Sesion s = new Sesion(p);
                 sesiones.add(s);
-                // Aviso centralizado en Fachada (login propietario)
-                Fachada.getInstancia().avisar(Fachada.Eventos.cambioListaSesiones);
                 return s;
             }
         }
@@ -100,7 +97,6 @@ public class SistemaAcceso {
                 if (administradoresLogueados.contains(cedula))
                     throw new ObligatorioException("Ud. ya está logueado");
                 administradoresLogueados.add(cedula);
-                Fachada.getInstancia().avisar(Fachada.Eventos.cambioListaSesiones);
                 return a;
             }
         }
@@ -110,11 +106,9 @@ public class SistemaAcceso {
     public List<Sesion> getSesiones() { return sesiones; }
     public void logout(Sesion s) { 
         sesiones.remove(s); 
-        Fachada.getInstancia().avisar(Fachada.Eventos.cambioListaSesiones);
     }
     public void logoutAdministrador(String cedula) { 
         if (cedula != null) administradoresLogueados.remove(cedula); 
-        Fachada.getInstancia().avisar(Fachada.Eventos.cambioListaSesiones);
     }
 
     /** Exponer propietarios para otros sistemas (p.ej. SistemaTransito). */

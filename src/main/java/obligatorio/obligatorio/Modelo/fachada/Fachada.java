@@ -89,14 +89,13 @@ import obligatorio.obligatorio.observador.Observable;
 
                     public Sesion loginPropietario(String cedula, String pwd) throws ObligatorioException {
                         Sesion s = sAcceso.loginPropietario(cedula, pwd);
-                        System.out.println(" Login propietario: " + s.getPropietario().getNombreCompleto() + " - Avisando cambioListaSesiones");
-                        avisar(Eventos.cambioListaSesiones);
                         return s;
+
+                        // return sAcceso.loginPropietario(cedula, pwd);
                     }
 
                     public Administrador loginAdministrador(String cedula, String pwd) throws ObligatorioException {
                         Administrador a = sAcceso.loginAdministrador(cedula, pwd);
-                        avisar(Eventos.cambioListaSesiones);
                         return a;
                     }
 
@@ -104,13 +103,11 @@ import obligatorio.obligatorio.observador.Observable;
 
                     public void logout(Sesion s) {
                         sAcceso.logout(s);
-                        System.out.println("🚪 Logout propietario - Avisando cambioListaSesiones");
-                        avisar(Eventos.cambioListaSesiones);
                     }
 
                     public void logoutAdministrador(String cedula) {
                         sAcceso.logoutAdministrador(cedula);
-                        avisar(Eventos.cambioListaSesiones);//este avisar deberia estar en el sistema de acceso
+
                     }
 
                     //TODO: esto se resuelve con los dtos o en contreller no aca en fachada. Este es lopgica no va en el sistema de tablero
