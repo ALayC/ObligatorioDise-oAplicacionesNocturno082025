@@ -12,12 +12,17 @@ public final class PrecargaDatos {
     private final List<Tarifa> tarifas = new ArrayList<>();
     private final List<Vehiculo> vehiculos = new ArrayList<>();
     private final List<Bonificacion> bonificaciones = new ArrayList<>();
-        // Eliminado: private final List<Estado> estados = new ArrayList<>();
     private final List<AsignacionBonificacion> asignaciones = new ArrayList<>();
-
-    // Solo para referencia/depuración (la fachada es la fuente de verdad de tránsitos)
     private final List<Notificacion> notificaciones = new ArrayList<>();
     private final List<Transito> transitos = new ArrayList<>();
+
+    // Estados de propietarios definidos en el sistema (según enunciado)
+    private final List<String> estadosPropietario = List.of(
+            "Habilitado",
+            "Deshabilitado",
+            "Suspendido",
+            "Penalizado"
+    );
 
     public static PrecargaDatos crear() throws ObligatorioException {
         PrecargaDatos d = new PrecargaDatos();
@@ -32,13 +37,14 @@ public final class PrecargaDatos {
     public List<Tarifa> getTarifas() { return tarifas; }
     public List<Vehiculo> getVehiculos() { return vehiculos; }
     public List<Bonificacion> getBonificaciones() { return bonificaciones; }
-        // Eliminado: public List<Estado> getEstados() { return estados; }
     public List<AsignacionBonificacion> getAsignaciones() { return asignaciones; }
     public List<Notificacion> getNotificaciones() { return notificaciones; }
     public List<Transito> getTransitos() { return transitos; }
 
+    // Nueva: estados de propietarios definidos
+    public List<String> getEstadosPropietario() { return estadosPropietario; }
+
     private void cargar() throws ObligatorioException {
-        // Solo poblar listas locales, sin usar Fachada ni registrar en sistemas
         // ----- Administradores -----
         Administrador admin1 = new Administrador("a", "a", "Usuario Administrador");
         Administrador admin2 = new Administrador("87654321", "root.123", "Admin Secundario");
@@ -95,10 +101,10 @@ public final class PrecargaDatos {
         tarifas.add(t21); tarifas.add(t22); tarifas.add(t23);
 
         // ----- Vehículos (asociados a propietarios) -----
-        Vehiculo v1 = new Vehiculo("1", "1",      "Rojo",  auto,   prop1);
+        Vehiculo v1 = new Vehiculo("1", "1", "Rojo",  auto,   prop1);
         Vehiculo v2 = new Vehiculo("SBC5678", "Camión 3/4", "Azul",  camion, prop1);
-        Vehiculo v3 = new Vehiculo("SBD9012", "Street",     "Negro", moto,   prop1); 
-        Vehiculo v4 = new Vehiculo("2", "2",      "Rojo",  auto,   prop2);
+        Vehiculo v3 = new Vehiculo("SBD9012", "Street",     "Negro", moto,   prop1);
+        Vehiculo v4 = new Vehiculo("2", "2", "Rojo",  auto,   prop2);
 
         prop1.agregarVehiculo(v1);
         prop1.agregarVehiculo(v2);
@@ -109,14 +115,13 @@ public final class PrecargaDatos {
 
         // ----- Asignaciones de bonificación -----
         AsignacionBonificacion a1 = new AsignacionBonificacion(prop1, p1, frecuentes,  java.time.LocalDate.now().minusDays(5));
-        //AsignacionBonificacion a2 = new AsignacionBonificacion(prop1, p2, exonerados,  java.time.LocalDate.now().minusDays(2));
         AsignacionBonificacion a3 = new AsignacionBonificacion(prop2, p1, trabajadores,java.time.LocalDate.now().minusDays(1));
 
         prop1.agregarAsignacion(a1);
-        //prop1.agregarAsignacion(a2);
         prop2.agregarAsignacion(a3);
 
-        asignaciones.add(a1); /*asignaciones.add(a2);*/ asignaciones.add(a3);
+        asignaciones.add(a1);
+        asignaciones.add(a3);
 
         // ----- Notificaciones -----
         Notificacion n11 = new Notificacion(
@@ -134,9 +139,5 @@ public final class PrecargaDatos {
                 java.time.LocalDate.now().minusDays(5));
         prop2.agregarNotificacion(n21);
         notificaciones.add(n21);
-
-        // Mantener en la lista local (solo referencia/depuración)
-        // Si necesitas registrar en sistemas, hazlo después de la inicialización de Fachada
-        // y llama a métodos de registro desde la propia Fachada
     }
 }

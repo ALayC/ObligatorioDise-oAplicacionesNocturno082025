@@ -20,7 +20,6 @@ import obligatorio.obligatorio.observador.Observable;
 
 public class Fachada extends Observable {
     private final SistemaAcceso sAcceso = new SistemaAcceso();
-    // private final SistemaTablero sTablero = new SistemaTablero();
     private final SistemaTransito sTransito = new SistemaTransito(sAcceso);
     private static final Fachada INST = new Fachada();
 
@@ -40,8 +39,21 @@ public class Fachada extends Observable {
     }
 
     /**
-     * Registra los datos precargados en los sistemas internos. Llamar tras
-     * inicialización.
+     * Datos precargados (administradores, propietarios, puestos, categorías, etc.).
+     */
+    private final obligatorio.obligatorio.Modelo.modelos.PrecargaDatos precargaDatos;
+    {
+        obligatorio.obligatorio.Modelo.modelos.PrecargaDatos tempPrecarga = null;
+        try {
+            tempPrecarga = obligatorio.obligatorio.Modelo.modelos.PrecargaDatos.crear();
+        } catch (ObligatorioException e) {
+            System.err.println("Error al precargar datos: " + e.getMessage());
+        }
+        precargaDatos = tempPrecarga;
+    }
+
+    /**
+     * Registra los datos precargados en los sistemas internos. Llamar tras inicialización.
      */
     public void registrarDatosPrecargados() throws ObligatorioException {
         // Administradores
@@ -56,18 +68,6 @@ public class Fachada extends Observable {
         for (obligatorio.obligatorio.Modelo.modelos.Puesto puesto : precargaDatos.getPuestos()) {
             agregarPuesto(puesto);
         }
-        // Si necesitas registrar tránsitos, bonificaciones, etc., agrégalos aquí
-    }
-
-    private final obligatorio.obligatorio.Modelo.modelos.PrecargaDatos precargaDatos;
-    {
-        obligatorio.obligatorio.Modelo.modelos.PrecargaDatos tempPrecarga = null;
-        try {
-            tempPrecarga = obligatorio.obligatorio.Modelo.modelos.PrecargaDatos.crear();
-        } catch (ObligatorioException e) {
-            System.err.println("Error al precargar datos: " + e.getMessage());
-        }
-        precargaDatos = tempPrecarga;
     }
 
     // Caso de uso 1: login propietario
@@ -90,11 +90,9 @@ public class Fachada extends Observable {
     }
 
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
-            BigDecimal saldo, BigDecimal saldoMin, String nombreEstado)
+                                   BigDecimal saldo, BigDecimal saldoMin, String nombreEstado)
             throws ObligatorioException {
         sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin, nombreEstado);
-        // Podría disparar evento de cambio de sesiones si se refleja en vistas de
-        // administración
     }
 
     public void registrarPropietario(Propietario p) throws ObligatorioException {
@@ -116,7 +114,6 @@ public class Fachada extends Observable {
 
     public void logoutAdministrador(String cedula) {
         sAcceso.logoutAdministrador(cedula);
-
     }
 
     // Métodos para emular tránsito
@@ -138,13 +135,17 @@ public class Fachada extends Observable {
 
     public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
             throws ObligatorioException {
-
         return sTransito.emularTransito(matricula, nombrePuesto, fecha, hora);
     }
 
     /** Devuelve la lista de bonificaciones definidas en el sistema. */
     public List<obligatorio.obligatorio.Modelo.modelos.Bonificacion> getBonificacionesDefinidas() {
         return precargaDatos.getBonificaciones();
+    }
+
+    /** Devuelve la lista de estados de propietario definidos en el sistema. */
+    public List<String> getEstadosPropietarioDefinidos() {
+        return precargaDatos.getEstadosPropietario();
     }
 
     /** Devuelve el propietario por cédula, o null si no existe. */

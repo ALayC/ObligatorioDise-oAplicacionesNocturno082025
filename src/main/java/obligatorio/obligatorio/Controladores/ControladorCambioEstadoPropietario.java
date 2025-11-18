@@ -31,7 +31,8 @@ public class ControladorCambioEstadoPropietario implements Observador {
     }
 
     @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter registrarSSE(@SessionAttribute(name = "usuarioAdmin", required = false) Object usuarioAdmin) {
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter registrarSSE(
+            @SessionAttribute(name = "usuarioAdmin", required = false) Object usuarioAdmin) {
         System.out.println("[SSE] registrarSSE llamado por usuarioAdmin: " + usuarioAdmin);
         conexionNavegador.conectarSSE();
         return conexionNavegador.getConexionSSE();
@@ -57,20 +58,17 @@ public class ControladorCambioEstadoPropietario implements Observador {
     public obligatorio.obligatorio.DTO.PropietarioBusquedaDTO buscarPropietario(@RequestParam String cedula) {
         System.out.println("[GET] buscarPropietario llamado con cedula: " + cedula);
         propietario = Fachada.getInstancia().getPropietarioPorCedula(cedula);
-        if (propietario == null) return null;
+        if (propietario == null)
+            return null;
         return new obligatorio.obligatorio.DTO.PropietarioBusquedaDTO(
-            propietario.getCedula(),
-            propietario.getNombreCompleto(),
-            propietario.getEstadoPropietario() != null ? propietario.getEstadoPropietario().getNombre() : ""
-        );
+                propietario.getCedula(),
+                propietario.getNombreCompleto(),
+                propietario.getEstadoPropietario() != null ? propietario.getEstadoPropietario().getNombre() : "");
     }
-    
 
     @GetMapping("/estados")
     public List<String> obtenerEstados() {
-        System.out.println("[GET] obtenerEstados llamado");
-        // Lista fija de estados posibles (puedes mover esto a Fachada si lo prefieres)
-        return List.of("Habilitado", "Deshabilitado", "Suspendido", "Penalizado");
+        return Fachada.getInstancia().getEstadosPropietarioDefinidos();
     }
 
     @PostMapping("/cambiar")
