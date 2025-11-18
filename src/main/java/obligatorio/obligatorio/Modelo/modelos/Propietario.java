@@ -2,6 +2,8 @@
 package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -262,4 +264,55 @@ public final class Propietario extends Observable {
                 .filter(t -> matriculasProp.contains(t.getVehiculo().getMatricula()))
                 .collect(Collectors.toList());
     }   
+
+        public void validarPuedeRealizarTransito() throws ObligatorioException {
+        String estado = estadoPropietario != null ? estadoPropietario.getNombre() : null;
+        if (estado == null) return;
+        if (estado.equalsIgnoreCase("Deshabilitado")) {
+            throw new ObligatorioException("El propietario del vehículo está deshabilitado, no puede realizar tránsitos");
+        }
+        if (estado.equalsIgnoreCase("Suspendido")) {
+            throw new ObligatorioException("El propietario del vehículo está suspendido, no puede realizar tránsitos");
+        }
+    }
+
+    public boolean estaPenalizado() {
+        String estado = estadoPropietario != null ? estadoPropietario.getNombre() : null;
+        return estado != null && estado.equalsIgnoreCase("Penalizado");
+    }
+
+    public Bonificacion obtenerBonificacionPara(Puesto puesto) {
+        if (estaPenalizado()) return null;
+        for (AsignacionBonificacion asig : asignaciones) {
+            if (asig.getPuesto().equals(puesto)) {
+                return asig.getBonificacion();
+            }
+        }
+        return null;
+    }
+
+    public void cobrarTransito(BigDecimal monto) throws ObligatorioException {
+        if (saldoActual.compareTo(monto) < 0) {
+            throw new ObligatorioException("Saldo insuficiente: " + saldoActual);
+        }
+        saldoActual = saldoActual.subtract(monto);
+    }
+
+    public void registrarNotificacionTransito(Puesto puesto, Vehiculo vehiculo, LocalDate fecha, LocalTime hora) {
+        if (estaPenalizado()) return;
+        String mensaje = String.format("%s %s Pasaste por el puesto %s con el vehículo %s",
+                fecha.toString(), hora.toString(), puesto.getNombre(), vehiculo.getMatricula());
+        notificaciones.add(new Notificacion(mensaje, LocalDate.now()));
+        avisar(Eventos.TRANSITO_REALIZADO);
+    }
+
+    public void verificarSaldoBajoYNotificar() {
+        if (saldoActual.compareTo(saldoMinimoAlerta) < 0) {
+            String mensaje = String.format("%s Tu saldo actual es de $%s. Te recomendamos hacer una recarga",
+                    LocalDate.now().toString(), saldoActual);
+            notificaciones.add(new Notificacion(mensaje, LocalDate.now()));
+            avisar(Eventos.SALDO_BAJO);
+        }
+    }
+
 }

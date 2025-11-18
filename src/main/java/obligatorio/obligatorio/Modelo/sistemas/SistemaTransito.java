@@ -63,22 +63,32 @@ public class SistemaTransito {
     public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
             throws ObligatorioException {
         validarParametros(matricula, nombrePuesto, fecha, hora);
+
         Vehiculo vehiculo = buscarVehiculo(matricula);
         Propietario propietario = vehiculo.getPropietario();
-        validarEstadoPropietario(propietario);
+
+        propietario.validarPuedeRealizarTransito();
+
         Puesto puesto = buscarPuesto(nombrePuesto);
         Tarifa tarifa = buscarTarifa(puesto, vehiculo.getCategoria());
-        boolean penalizado = esPenalizado(propietario);
-        Bonificacion bonificacion = determinarBonificacion(propietario, puesto, penalizado);
+
+        Bonificacion bonificacion = propietario.obtenerBonificacionPara(puesto);
+
         BigDecimal montoCobrado = calcularMontoCobrado(tarifa, bonificacion);
-        verificarSaldo(propietario, montoCobrado);
-        descontarSaldo(propietario, montoCobrado);
+
+        propietario.cobrarTransito(montoCobrado);
+
         registrarTransitoInterno(vehiculo, puesto, tarifa, fecha, hora, bonificacion, montoCobrado);
-        notificarTransitoSiCorresponde(propietario, vehiculo, puesto, fecha, penalizado);
-        notificarSaldoBajoSiCorresponde(propietario);
+
+        propietario.registrarNotificacionTransito(puesto, vehiculo, fecha, hora);
+
+        propietario.verificarSaldoBajoYNotificar();
+
         emitirEventosGlobales();
+
         return construirResultado(propietario, vehiculo, tarifa, bonificacion, montoCobrado);
     }
+
 
     // -------- Helpers privados (mantienen comportamiento original) --------
     private void validarParametros(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora) throws ObligatorioException {
