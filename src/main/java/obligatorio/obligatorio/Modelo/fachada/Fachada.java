@@ -20,7 +20,7 @@ import obligatorio.obligatorio.observador.Observable;
 
 public class Fachada extends Observable {
     private final SistemaAcceso sAcceso = new SistemaAcceso();
-    //private final SistemaTablero sTablero = new SistemaTablero();
+    // private final SistemaTablero sTablero = new SistemaTablero();
     private final SistemaTransito sTransito = new SistemaTransito(sAcceso);
     private static final Fachada INST = new Fachada();
 
@@ -118,6 +118,7 @@ public class Fachada extends Observable {
         sAcceso.logoutAdministrador(cedula);
 
     }
+
     // Métodos para emular tránsito
     public void agregarPuesto(Puesto p) throws ObligatorioException {
         sTransito.agregarPuesto(p);
@@ -137,15 +138,8 @@ public class Fachada extends Observable {
 
     public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
             throws ObligatorioException {
-        ResultadoEmulacionDTO dto = sTransito.emularTransito(matricula, nombrePuesto, fecha, hora);
-        System.out.println(
-                "🚗 Tránsito emulado - Avisando eventos: transitoRegistrado, saldoActualizado, notificacionesActualizadas");
-        // El método interno ya genera notificaciones (saldo bajo / tránsito).
-        // Reflejamos eventos globales:
-        avisar(Eventos.transitoRegistrado);
-        avisar(Eventos.saldoActualizado);
-        avisar(Eventos.notificacionesActualizadas);
-        return dto;
+
+        return sTransito.emularTransito(matricula, nombrePuesto, fecha, hora);
     }
 
     /** Devuelve la lista de bonificaciones definidas en el sistema. */
