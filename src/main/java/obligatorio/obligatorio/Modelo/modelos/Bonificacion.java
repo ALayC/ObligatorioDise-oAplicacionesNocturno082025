@@ -1,24 +1,42 @@
 package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
-public final class Bonificacion {
+public abstract class Bonificacion {
+
     private final String nombre;
 
-    public Bonificacion(String nombre) { this.nombre = Objects.requireNonNull(nombre); }
+    protected Bonificacion(String nombre) {
+        this.nombre = Objects.requireNonNull(nombre);
+    }
 
-    public String getNombre() { return nombre; }
+    public String getNombre() {
+        return nombre;
+    }
 
-    @Override public boolean equals(Object o){return o instanceof Bonificacion b && nombre.equalsIgnoreCase(b.nombre);}
-    @Override public int hashCode(){return nombre.toLowerCase().hashCode();}
-    @Override public String toString(){return nombre;}
+    public abstract BigDecimal calcularMonto(BigDecimal montoBase,
+                                             Propietario propietario,
+                                             Vehiculo vehiculo,
+                                             Puesto puesto,
+                                             LocalDate fecha,
+                                             List<Transito> transitosHistoricos);
 
-    public BigDecimal calcularMonto(BigDecimal montoBase) {
-        // Implement the logic for calculating the discounted amount.
-        // For example, if you have a percentage field:
-        // return montoBase.subtract(montoBase.multiply(porcentajeDescuento));
-        // Replace with your actual calculation logic.
-        return montoBase; // No discount by default
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Bonificacion b)) return false;
+        return nombre.equalsIgnoreCase(b.nombre);
+    }
+
+    @Override
+    public int hashCode() {
+        return nombre.toLowerCase().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return nombre;
     }
 }
