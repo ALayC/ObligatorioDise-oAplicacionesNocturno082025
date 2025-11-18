@@ -8,7 +8,7 @@ public final class EstadoPropietarioPenalizado extends EstadoPropietario {
 
     @Override
     public String getNombre() {
-        return "Suspendido";
+        return "Penalizado";
     }
 
     @Override

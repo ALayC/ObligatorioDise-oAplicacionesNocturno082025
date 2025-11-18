@@ -8,10 +8,7 @@ import java.util.Set;
 
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.modelos.EstadoPropietario;
-import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioDeshabilitado;
-import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioHabilitado;
-import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioPenalizado;
-import obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioSuspendido;
+import obligatorio.obligatorio.Modelo.modelos.FabricaEstadoPropietario;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
 import obligatorio.obligatorio.Modelo.modelos.Propietario;
 import obligatorio.obligatorio.Modelo.modelos.Sesion;
@@ -24,52 +21,35 @@ public class SistemaAcceso {
     // Listas de tránsito y puestos movidas a SistemaTransito.
 
     public void agregarPropietario(Propietario p) throws ObligatorioException {
-        if (p == null) throw new ObligatorioException("Propietario nulo");
-        if (p.getCedula() == null || p.getCedula().isBlank()) throw new ObligatorioException("Cédula requerida");
+        if (p == null)
+            throw new ObligatorioException("Propietario nulo");
+        if (p.getCedula() == null || p.getCedula().isBlank())
+            throw new ObligatorioException("Cédula requerida");
         boolean existe = propietarios.stream().anyMatch(x -> x.getCedula().equals(p.getCedula()));
-        if (existe) throw new ObligatorioException("Ya existe un propietario con esa cédula");
+        if (existe)
+            throw new ObligatorioException("Ya existe un propietario con esa cédula");
         propietarios.add(p);
     }
 
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
-                                   BigDecimal saldo, BigDecimal saldoMin, String nombreEstado) throws ObligatorioException {
-        EstadoPropietario estadoPropietario;
-        if (nombreEstado == null || nombreEstado.equalsIgnoreCase("Habilitado")) {
-            estadoPropietario = new EstadoPropietarioHabilitado(null);
-        } else if (nombreEstado.equalsIgnoreCase("Deshabilitado")) {
-            estadoPropietario = new EstadoPropietarioDeshabilitado(null);
-        } else if (nombreEstado.equalsIgnoreCase("Suspendido")) {
-            estadoPropietario = new EstadoPropietarioSuspendido(null);
-        } else if (nombreEstado.equalsIgnoreCase("Penalizado")) {
-            estadoPropietario = new EstadoPropietarioPenalizado(null);
-        } else {
-            estadoPropietario = new EstadoPropietarioHabilitado(null);
-        }
-        Propietario p = new Propietario(cedula, pwd, nombreCompleto, saldo, saldoMin, estadoPropietario);
-        p.setEstadoPropietario(crearEstadoPropietarioParaPropietario(p, nombreEstado));
+            BigDecimal saldo, BigDecimal saldoMin, String nombreEstado)
+            throws ObligatorioException {
+
+        Propietario p = new Propietario(cedula, pwd, nombreCompleto, saldo, saldoMin, null);
+        EstadoPropietario estado = FabricaEstadoPropietario.crearEstado(nombreEstado, p);
+        p.setEstadoPropietario(estado);
+
         agregarPropietario(p);
-    }
-    //TODO: Revisar donde va este metodo
-    // Helper para crear el estado concreto y asociar el propietario
-    private EstadoPropietario crearEstadoPropietarioParaPropietario(Propietario p, String nombreEstado) {
-        if (nombreEstado == null || nombreEstado.equalsIgnoreCase("Habilitado")) {
-            return new EstadoPropietarioHabilitado(p);
-        } else if (nombreEstado.equalsIgnoreCase("Deshabilitado")) {
-            return new EstadoPropietarioDeshabilitado(p);
-        } else if (nombreEstado.equalsIgnoreCase("Suspendido")) {
-            return new EstadoPropietarioSuspendido(p);
-        } else if (nombreEstado.equalsIgnoreCase("Penalizado")) {
-            return new EstadoPropietarioPenalizado(p);
-        } else {
-            return new EstadoPropietarioHabilitado(p);
-        }
     }
 
     public void agregarAdministrador(Administrador a) throws ObligatorioException {
-        if (a == null) throw new ObligatorioException("Administrador nulo");
-        if (a.getCedula() == null || a.getCedula().isBlank()) throw new ObligatorioException("Cédula requerida");
+        if (a == null)
+            throw new ObligatorioException("Administrador nulo");
+        if (a.getCedula() == null || a.getCedula().isBlank())
+            throw new ObligatorioException("Cédula requerida");
         boolean existe = administradores.stream().anyMatch(x -> x.getCedula().equals(a.getCedula()));
-        if (existe) throw new ObligatorioException("Ya existe un administrador con esa cédula");
+        if (existe)
+            throw new ObligatorioException("Ya existe un administrador con esa cédula");
         administradores.add(a);
     }
 
@@ -103,21 +83,30 @@ public class SistemaAcceso {
         throw new ObligatorioException("Login incorrecto");
     }
 
-    public List<Sesion> getSesiones() { return sesiones; }
-    public void logout(Sesion s) { 
-        sesiones.remove(s); 
+    public List<Sesion> getSesiones() {
+        return sesiones;
     }
-    public void logoutAdministrador(String cedula) { 
-        if (cedula != null) administradoresLogueados.remove(cedula); 
+
+    public void logout(Sesion s) {
+        sesiones.remove(s);
+    }
+
+    public void logoutAdministrador(String cedula) {
+        if (cedula != null)
+            administradoresLogueados.remove(cedula);
     }
 
     /** Exponer propietarios para otros sistemas (p.ej. SistemaTransito). */
-    public List<Propietario> getPropietarios() { return propietarios; }
+    public List<Propietario> getPropietarios() {
+        return propietarios;
+    }
 
     /** Recargar saldo de un propietario (método antes referido por la Fachada). */
     public void recargarSaldo(Propietario p, BigDecimal monto) throws ObligatorioException {
-        if (p == null) throw new ObligatorioException("Propietario nulo");
-        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) throw new ObligatorioException("Monto inválido");
+        if (p == null)
+            throw new ObligatorioException("Propietario nulo");
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0)
+            throw new ObligatorioException("Monto inválido");
         p.setSaldoActual(p.getSaldoActual().add(monto));
         // Podría añadirse notificación de recarga aquí si el CU lo requiere.
     }

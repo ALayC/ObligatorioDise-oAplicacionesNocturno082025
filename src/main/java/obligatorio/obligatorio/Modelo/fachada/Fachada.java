@@ -79,11 +79,6 @@ public class Fachada extends Observable {
         return sAcceso.loginAdministrador(cedula, pwd);
     }
 
-    /** Registrar un tránsito y avisar a los observadores. */
-    public void registrarTransito(Transito t) {
-        sTransito.registrarTransito(t);
-        avisar(Eventos.transitoRegistrado);
-    }
 
     public List<Transito> getTransitos() {
         return sTransito.getTransitos();

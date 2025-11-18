@@ -40,7 +40,7 @@ public final class Propietario extends Observable {
     private final Set<AsignacionBonificacion> asignaciones = new HashSet<>();
 
     public Propietario(String cedula, String password, String nombreCompleto,
-                       BigDecimal saldoActual, BigDecimal saldoMinimoAlerta, EstadoPropietario estadoPropietario) {
+            BigDecimal saldoActual, BigDecimal saldoMinimoAlerta, EstadoPropietario estadoPropietario) {
         this.cedula = Objects.requireNonNull(cedula);
         this.password = Objects.requireNonNull(password);
         this.nombreCompleto = Objects.requireNonNull(nombreCompleto);
@@ -50,39 +50,94 @@ public final class Propietario extends Observable {
     }
 
     // Getters y setters de Usuario
-    public String getCedula() { return cedula; }
-    public void setCedula(String cedula) { this.cedula = cedula; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    public String getNombreCompleto() { return nombreCompleto; }
-    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
-    public BigDecimal getSaldoActual() { return saldoActual; }
-    public void setSaldoActual(BigDecimal saldoActual) { this.saldoActual = saldoActual; }
-    public BigDecimal getSaldoMinimoAlerta() { return saldoMinimoAlerta; }
-    public void setSaldoMinimoAlerta(BigDecimal saldoMinimoAlerta) { this.saldoMinimoAlerta = saldoMinimoAlerta; }
+    public String getCedula() {
+        return cedula;
+    }
+
+    public void setCedula(String cedula) {
+        this.cedula = cedula;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getNombreCompleto() {
+        return nombreCompleto;
+    }
+
+    public void setNombreCompleto(String nombreCompleto) {
+        this.nombreCompleto = nombreCompleto;
+    }
+
+    public BigDecimal getSaldoActual() {
+        return saldoActual;
+    }
+
+    public void setSaldoActual(BigDecimal saldoActual) {
+        this.saldoActual = saldoActual;
+    }
+
+    public BigDecimal getSaldoMinimoAlerta() {
+        return saldoMinimoAlerta;
+    }
+
+    public void setSaldoMinimoAlerta(BigDecimal saldoMinimoAlerta) {
+        this.saldoMinimoAlerta = saldoMinimoAlerta;
+    }
 
     public EstadoPropietario getEstadoPropietario() {
         return estadoPropietario;
     }
+
     public void setEstadoPropietario(EstadoPropietario estadoPropietario) {
         this.estadoPropietario = Objects.requireNonNull(estadoPropietario);
     }
 
-    // Delegación de la acción de asignar bonificación al estado actual (STATE + EXPERTO)
+    // Delegación de la acción de asignar bonificación al estado actual (STATE +
+    // EXPERTO)
     public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
         estadoPropietario.asignarBonificacion(bonificacion, puesto);
     }
 
-    public Set<Vehiculo> getVehiculos() { return Collections.unmodifiableSet(vehiculos); }
-    public List<Notificacion> getNotificaciones() { return Collections.unmodifiableList(notificaciones); }
-    public Set<AsignacionBonificacion> getAsignaciones() { return Collections.unmodifiableSet(asignaciones); }
-    public boolean agregarVehiculo(Vehiculo v){ return vehiculos.add(v); }
-    public void agregarNotificacion(Notificacion n){ notificaciones.add(n); }
-    public boolean agregarAsignacion(AsignacionBonificacion a){ return asignaciones.add(a); }
-    public int cantidadNotificaciones() { return notificaciones.size(); }
-    public void limpiarNotificaciones() { notificaciones.clear(); }
+    public Set<Vehiculo> getVehiculos() {
+        return Collections.unmodifiableSet(vehiculos);
+    }
 
-    // Verifica si el propietario ya tiene una bonificación asignada para el puesto dado
+    public List<Notificacion> getNotificaciones() {
+        return Collections.unmodifiableList(notificaciones);
+    }
+
+    public Set<AsignacionBonificacion> getAsignaciones() {
+        return Collections.unmodifiableSet(asignaciones);
+    }
+
+    public boolean agregarVehiculo(Vehiculo v) {
+        return vehiculos.add(v);
+    }
+
+    public void agregarNotificacion(Notificacion n) {
+        notificaciones.add(n);
+    }
+
+    public boolean agregarAsignacion(AsignacionBonificacion a) {
+        return asignaciones.add(a);
+    }
+
+    public int cantidadNotificaciones() {
+        return notificaciones.size();
+    }
+
+    public void limpiarNotificaciones() {
+        notificaciones.clear();
+    }
+
+    // Verifica si el propietario ya tiene una bonificación asignada para el puesto
+    // dado
     public boolean tieneBonificacionParaPuesto(Puesto puesto) {
         for (AsignacionBonificacion asignacion : asignaciones) {
             if (asignacion.getPuesto().equals(puesto)) {
@@ -108,8 +163,7 @@ public final class Propietario extends Observable {
                 this,
                 puesto,
                 bonificacion,
-                LocalDate.now()
-        );
+                LocalDate.now());
 
         agregarAsignacionBonificacion(asignacion);
     }
@@ -139,39 +193,34 @@ public final class Propietario extends Observable {
     }
 
     @Override
-    public boolean equals(Object o){ return o instanceof Propietario p && getCedula().equals(p.getCedula()); }
+    public boolean equals(Object o) {
+        return o instanceof Propietario p && getCedula().equals(p.getCedula());
+    }
+
     @Override
-    public int hashCode(){ return Objects.hash(getCedula()); }
+    public int hashCode() {
+        return Objects.hash(getCedula());
+    }
 
     public boolean estaHabilitado() {
         return !(estadoPropietario instanceof EstadoPropietarioDeshabilitado);
     }
 
     public String cambiarEstadoYNotificar(String nuevoEstado) {
-        if (estadoPropietario.getNombre().equals(nuevoEstado)) {
+        if (estadoPropietario != null
+                && estadoPropietario.getNombre().equalsIgnoreCase(nuevoEstado)) {
             return "El propietario ya está en estado " + estadoPropietario.getNombre();
         }
-        setEstadoPropietario(crearEstadoPropietarioParaPropietario(this, nuevoEstado));
+
+        EstadoPropietario nuevo = FabricaEstadoPropietario.crearEstado(nuevoEstado, this);
+        setEstadoPropietario(nuevo);
+
         notificaciones.add(new Notificacion(
                 "Se ha cambiado tu estado en el sistema. Tu estado actual es " + nuevoEstado,
                 LocalDate.now()));
-        avisar(Eventos.CAMBIO_ESTADO); // Notifica a los observadores del cambio de estado
-        return "Estado cambiado correctamente";
-    }
 
-    // Helper para crear el estado concreto y asociar el propietario
-    private EstadoPropietario crearEstadoPropietarioParaPropietario(Propietario p, String nombreEstado) {
-        if (nombreEstado == null || nombreEstado.equalsIgnoreCase("Habilitado")) {
-            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioHabilitado(p);
-        } else if (nombreEstado.equalsIgnoreCase("Deshabilitado")) {
-            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioDeshabilitado(p);
-        } else if (nombreEstado.equalsIgnoreCase("Suspendido")) {
-            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioSuspendido(p);
-        } else if (nombreEstado.equalsIgnoreCase("Penalizado")) {
-            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioPenalizado(p);
-        } else {
-            return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioHabilitado(p);
-        }
+        avisar(Eventos.CAMBIO_ESTADO);
+        return "Estado cambiado correctamente";
     }
 
     // ----------------- Tablero propietario (EXP) -----------------
@@ -189,8 +238,7 @@ public final class Propietario extends Observable {
                 new Respuesta("bonificaciones", bonis),
                 new Respuesta("vehiculos", vehs),
                 new Respuesta("transitos", trans),
-                new Respuesta("notificaciones", notifs)
-        );
+                new Respuesta("notificaciones", notifs));
     }
 
     public int borrarNotificacionesPropietario() {
@@ -206,8 +254,7 @@ public final class Propietario extends Observable {
         return new CabeceraPropietarioDTO(
                 nombreCompleto,
                 estado,
-                saldoActual
-        );
+                saldoActual);
     }
 
     private List<BonificacionAsignadaDTO> construirBonificaciones() {
@@ -215,8 +262,7 @@ public final class Propietario extends Observable {
                 .map(a -> new BonificacionAsignadaDTO(
                         a.getBonificacion().getNombre(),
                         a.getPuesto().getNombre(),
-                        a.getFechaAsignacion()
-                ))
+                        a.getFechaAsignacion()))
                 .sorted(Comparator.comparing(b -> b.fechaAsignada))
                 .collect(Collectors.toList());
     }
@@ -240,8 +286,7 @@ public final class Propietario extends Observable {
                             v.getModelo(),
                             v.getColor(),
                             cant,
-                            total
-                    );
+                            total);
                 })
                 .collect(Collectors.toList());
     }
@@ -264,8 +309,7 @@ public final class Propietario extends Observable {
                                 : BigDecimal.ZERO,
                         t.getMontoCobrado(),
                         t.getFecha(),
-                        t.getHora()
-                ))
+                        t.getHora()))
                 .collect(Collectors.toList());
     }
 
@@ -273,8 +317,7 @@ public final class Propietario extends Observable {
         return notificaciones.stream()
                 .map(n -> new NotificacionDTO(
                         n.getFechaHora(),
-                        n.getMensaje()
-                ))
+                        n.getMensaje()))
                 .sorted(Comparator.comparing((NotificacionDTO n) -> n.fechaHora).reversed())
                 .collect(Collectors.toList());
     }
@@ -293,9 +336,11 @@ public final class Propietario extends Observable {
 
     public void validarPuedeRealizarTransito() throws ObligatorioException {
         String estado = estadoPropietario != null ? estadoPropietario.getNombre() : null;
-        if (estado == null) return;
+        if (estado == null)
+            return;
         if (estado.equalsIgnoreCase("Deshabilitado")) {
-            throw new ObligatorioException("El propietario del vehículo está deshabilitado, no puede realizar tránsitos");
+            throw new ObligatorioException(
+                    "El propietario del vehículo está deshabilitado, no puede realizar tránsitos");
         }
         if (estado.equalsIgnoreCase("Suspendido")) {
             throw new ObligatorioException("El propietario del vehículo está suspendido, no puede realizar tránsitos");
@@ -308,7 +353,8 @@ public final class Propietario extends Observable {
     }
 
     public Bonificacion obtenerBonificacionPara(Puesto puesto) {
-        if (estaPenalizado()) return null;
+        if (estaPenalizado())
+            return null;
         for (AsignacionBonificacion asig : asignaciones) {
             if (asig.getPuesto().equals(puesto)) {
                 return asig.getBonificacion();
@@ -325,7 +371,8 @@ public final class Propietario extends Observable {
     }
 
     public void registrarNotificacionTransito(Puesto puesto, Vehiculo vehiculo, LocalDate fecha, LocalTime hora) {
-        if (estaPenalizado()) return;
+        if (estaPenalizado())
+            return;
         String mensaje = String.format("%s %s Pasaste por el puesto %s con el vehículo %s",
                 fecha.toString(), hora.toString(), puesto.getNombre(), vehiculo.getMatricula());
         notificaciones.add(new Notificacion(mensaje, LocalDate.now()));
