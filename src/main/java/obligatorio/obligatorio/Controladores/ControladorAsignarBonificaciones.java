@@ -163,8 +163,8 @@ public class ControladorAsignarBonificaciones implements Observador {
     @Override
     public void actualizar(Object evento, Observable origen) {
         // Enviar el tablero completo del propietario afectado
-        if (origen instanceof Propietario propietario && conexionNavegador.getConexionSSE() != null) {
-            conexionNavegador.enviarJSON(fachada.armarRespuestasTablero(propietario));
-        }
+        // if (origen instanceof Propietario propietario && conexionNavegador.getConexionSSE() != null) {
+        //     conexionNavegador.enviarJSON(fachada.armarRespuestasTablero(propietario));
+        // }
     }
 }

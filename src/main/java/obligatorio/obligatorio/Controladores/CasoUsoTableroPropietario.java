@@ -24,26 +24,31 @@ import obligatorio.obligatorio.observador.Observador;
 public class CasoUsoTableroPropietario implements Observador {
     private Propietario propietario;
     private final ConexionNavegador conexionNavegador;
+
     public CasoUsoTableroPropietario(@Autowired ConexionNavegador conexionNavegador) {
         this.conexionNavegador = conexionNavegador;
     }
-    
+
     @GetMapping(value = "/registrarSSE", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
-    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter registrarSSE(@SessionAttribute(name = "usuarioPropietario") Sesion sesion) {
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter registrarSSE(
+            @SessionAttribute(name = "usuarioPropietario") Sesion sesion) {
         conexionNavegador.conectarSSE();
         return conexionNavegador.getConexionSSE();
     }
+
     @PostMapping("/vistaConectada")
-    public List<Respuesta> inicializarVista(@SessionAttribute(name = "usuarioPropietario") Sesion sesion){
+    public List<Respuesta> inicializarVista(@SessionAttribute(name = "usuarioPropietario") Sesion sesion) {
         propietario = sesion.getPropietario();
         System.out.println("[LOG] Registrando observador en propietario: " + propietario.getNombreCompleto());
         propietario.agregarObservador(this);
-        return Fachada.getInstancia().armarRespuestasTablero(propietario);
+
+        var todosLosTransitos = Fachada.getInstancia().getTransitos();
+        return propietario.armarRespuestasTablero(todosLosTransitos);
     }
 
     @PostMapping("/vistaCerrada")
-    public void salir(){
-        if(propietario != null) {
+    public void salir() {
+        if (propietario != null) {
             System.out.println("[LOG] Quitando observador de propietario: " + propietario.getNombreCompleto());
             propietario.quitarObservador(this);
         }
@@ -54,9 +59,10 @@ public class CasoUsoTableroPropietario implements Observador {
         System.out.println("[LOG] CasoUsoTableroPropietario.actualizar llamado. Evento: " + evento);
         if (evento instanceof Propietario.Eventos ev) {
             switch (ev) {
-                case TRANSITO_REALIZADO, SALDO_BAJO, CAMBIO_ESTADO, BONIFICACION_ASIGNADA  -> {
+                case TRANSITO_REALIZADO, SALDO_BAJO, CAMBIO_ESTADO, BONIFICACION_ASIGNADA -> {
                     System.out.println("[LOG] Enviando SSE al propietario: " + propietario.getNombreCompleto());
-                    conexionNavegador.enviarJSON(Fachada.getInstancia().armarRespuestasTablero(propietario));
+                    var todosLosTransitos = Fachada.getInstancia().getTransitos();
+                    conexionNavegador.enviarJSON(propietario.armarRespuestasTablero(todosLosTransitos));
                 }
             }
         }
@@ -65,13 +71,13 @@ public class CasoUsoTableroPropietario implements Observador {
     @PostMapping("/notificaciones/borrar")
     public Object borrarNotificaciones(@SessionAttribute(name = "usuarioPropietario") Sesion sesion) {
         Propietario p = sesion.getPropietario();
-        int cant = Fachada.getInstancia().borrarNotificaciones(p);
+        int cant = p.borrarNotificacionesPropietario();
         if (cant == 0) {
             return ResponseEntity.status(299).body("No hay notificaciones para borrar");
         }
         return Respuesta.lista(
-            new Respuesta("notificacionesBorradas", cant),
-            new Respuesta("notificaciones", List.of())
+                new Respuesta("notificacionesBorradas", cant),
+                new Respuesta("notificaciones", List.of())
         );
     }
 

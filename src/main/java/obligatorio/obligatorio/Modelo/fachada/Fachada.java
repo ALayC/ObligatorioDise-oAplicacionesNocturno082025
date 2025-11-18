@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import obligatorio.obligatorio.Controladores.Respuesta;
 import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
@@ -16,13 +15,12 @@ import obligatorio.obligatorio.Modelo.modelos.Puesto;
 import obligatorio.obligatorio.Modelo.modelos.Sesion;
 import obligatorio.obligatorio.Modelo.modelos.Transito;
 import obligatorio.obligatorio.Modelo.sistemas.SistemaAcceso;
-import obligatorio.obligatorio.Modelo.sistemas.SistemaTablero;
 import obligatorio.obligatorio.Modelo.sistemas.SistemaTransito;
 import obligatorio.obligatorio.observador.Observable;
 
 public class Fachada extends Observable {
     private final SistemaAcceso sAcceso = new SistemaAcceso();
-    private final SistemaTablero sTablero = new SistemaTablero();
+    //private final SistemaTablero sTablero = new SistemaTablero();
     private final SistemaTransito sTransito = new SistemaTransito(sAcceso);
     private static final Fachada INST = new Fachada();
 
@@ -120,20 +118,6 @@ public class Fachada extends Observable {
         sAcceso.logoutAdministrador(cedula);
 
     }
-
-    // TODO: esto se resuelve con los dtos o en contreller no aca en fachada. Este
-    // es lopgica no va en el sistema de tablero
-    public List<Respuesta> armarRespuestasTablero(Propietario p) {
-        return sTablero.armarRespuestasTablero(p);
-    }
-
-    // esto es logica no va aca
-    public int borrarNotificaciones(Propietario p) {
-        int borradas = sTablero.borrarNotificaciones(p);
-        avisar(Eventos.notificacionesActualizadas);// este avisar deberia estar ene l proptietario
-        return borradas;
-    }
-
     // Métodos para emular tránsito
     public void agregarPuesto(Puesto p) throws ObligatorioException {
         sTransito.agregarPuesto(p);

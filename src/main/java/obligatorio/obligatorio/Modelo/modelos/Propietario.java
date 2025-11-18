@@ -4,14 +4,23 @@ package obligatorio.obligatorio.Modelo.modelos;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import obligatorio.obligatorio.Controladores.Respuesta;
+import obligatorio.obligatorio.DTO.BonificacionAsignadaDTO;
+import obligatorio.obligatorio.DTO.CabeceraPropietarioDTO;
+import obligatorio.obligatorio.DTO.NotificacionDTO;
+import obligatorio.obligatorio.DTO.TransitoDTO;
+import obligatorio.obligatorio.DTO.VehiculoResumenDTO;
 import obligatorio.obligatorio.observador.Observable;
 
 public final class Propietario extends Observable {
+
     
     public enum Eventos { 
         TRANSITO_REALIZADO, 
@@ -140,4 +149,117 @@ public final class Propietario extends Observable {
             return new obligatorio.obligatorio.Modelo.modelos.EstadoPropietarioHabilitado(p);
         }
     }
+
+     //refactor tablero propietario
+      public List<Respuesta> armarRespuestasTablero(List<Transito> todosLosTransitos) {
+        CabeceraPropietarioDTO cabecera = construirCabecera();
+        List<BonificacionAsignadaDTO> bonis = construirBonificaciones();
+        List<VehiculoResumenDTO> vehs = construirVehiculos(todosLosTransitos);
+        List<TransitoDTO> trans = construirTransitos(todosLosTransitos);
+        List<NotificacionDTO> notifs = construirNotificaciones();
+
+        return Respuesta.lista(
+                new Respuesta("cabecera", cabecera),
+                new Respuesta("bonificaciones", bonis),
+                new Respuesta("vehiculos", vehs),
+                new Respuesta("transitos", trans),
+                new Respuesta("notificaciones", notifs)
+        );
+    }
+
+    public int borrarNotificacionesPropietario() {
+        int cant = cantidadNotificaciones();
+        if (cant > 0) {
+            limpiarNotificaciones();
+        }
+        return cant;
+    }
+
+    private CabeceraPropietarioDTO construirCabecera() {
+        String estado = estadoPropietario != null ? estadoPropietario.getNombre() : "—";
+        return new CabeceraPropietarioDTO(
+                nombreCompleto,
+                estado,
+                saldoActual
+        );
+    }
+
+    private List<BonificacionAsignadaDTO> construirBonificaciones() {
+        return asignaciones.stream()
+                .map(a -> new BonificacionAsignadaDTO(
+                        a.getBonificacion().getNombre(),
+                        a.getPuesto().getNombre(),
+                        a.getFechaAsignacion()
+                ))
+                .sorted(Comparator.comparing(b -> b.fechaAsignada))
+                .collect(Collectors.toList());
+    }
+
+    private List<VehiculoResumenDTO> construirVehiculos(List<Transito> todosLosTransitos) {
+        List<Transito> transitosProp = filtrarTransitosDelPropietario(todosLosTransitos);
+
+        return vehiculos.stream()
+                .map(v -> {
+                    List<Transito> transV = transitosProp.stream()
+                            .filter(t -> t.getVehiculo().equals(v))
+                            .toList();
+
+                    int cant = transV.size();
+                    BigDecimal total = transV.stream()
+                            .map(Transito::getMontoCobrado)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    return new VehiculoResumenDTO(
+                            v.getMatricula(),
+                            v.getModelo(),
+                            v.getColor(),
+                            cant,
+                            total
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<TransitoDTO> construirTransitos(List<Transito> todosLosTransitos) {
+        List<Transito> transitosProp = filtrarTransitosDelPropietario(todosLosTransitos);
+
+        return transitosProp.stream()
+                .sorted(Comparator.comparing(Transito::getFecha)
+                        .thenComparing(Transito::getHora)
+                        .reversed())
+                .map(t -> new TransitoDTO(
+                        t.getPuesto().getNombre(),
+                        t.getVehiculo().getMatricula(),
+                        t.getTarifaAplicada().getCategoria().getNombre(),
+                        t.getMontoBase(),
+                        t.getBonificacionAplicada() != null ? t.getBonificacionAplicada().getNombre() : null,
+                        t.getBonificacionAplicada() != null
+                                ? t.getMontoBase().subtract(t.getMontoCobrado())
+                                : BigDecimal.ZERO,
+                        t.getMontoCobrado(),
+                        t.getFecha(),
+                        t.getHora()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private List<NotificacionDTO> construirNotificaciones() {
+        return notificaciones.stream()
+                .map(n -> new NotificacionDTO(
+                        n.getFechaHora(),
+                        n.getMensaje()
+                ))
+                .sorted(Comparator.comparing((NotificacionDTO n) -> n.fechaHora).reversed())
+                .collect(Collectors.toList());
+    }
+
+    private List<Transito> filtrarTransitosDelPropietario(List<Transito> todosLosTransitos) {
+        Set<String> matriculasProp = vehiculos.stream()
+                .map(Vehiculo::getMatricula)
+                .collect(Collectors.toSet());
+
+        return todosLosTransitos.stream()
+                .filter(t -> matriculasProp.contains(t.getVehiculo().getMatricula()))
+                .collect(Collectors.toList());
+    }   
 }
