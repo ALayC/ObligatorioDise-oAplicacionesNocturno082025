@@ -46,7 +46,7 @@ public final class Propietario extends Observable {
         this.nombreCompleto = Objects.requireNonNull(nombreCompleto);
         this.saldoActual = Objects.requireNonNull(saldoActual);
         this.saldoMinimoAlerta = Objects.requireNonNull(saldoMinimoAlerta);
-        this.estadoPropietario = Objects.requireNonNull(estadoPropietario);
+        this.estadoPropietario = estadoPropietario;
     }
 
     // Getters y setters de Usuario

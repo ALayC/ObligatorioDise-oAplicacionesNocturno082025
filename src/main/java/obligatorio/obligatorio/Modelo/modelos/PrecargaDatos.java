@@ -85,15 +85,14 @@ public final class PrecargaDatos {
                 Propietario prop1 = new Propietario("1", "1", "Walter",
                                 new BigDecimal("2000.00"), new BigDecimal("500.00"),
                                 null);
+                prop1.setEstadoPropietario(
+                                FabricaEstadoPropietario.crearEstado("Habilitado", prop1));
+
                 Propietario prop2 = new Propietario("2", "2", "josé",
                                 new BigDecimal("800.00"), new BigDecimal("200.00"),
                                 null);
-
-                prop1.setEstadoPropietario(FabricaEstadoPropietario.crearEstado("Habilitado", prop1));
-                prop2.setEstadoPropietario(FabricaEstadoPropietario.crearEstado("Habilitado", prop2));
-
-                prop1.setEstadoPropietario(new EstadoPropietarioHabilitado(prop1));
-                prop2.setEstadoPropietario(new EstadoPropietarioHabilitado(prop2));
+                prop2.setEstadoPropietario(
+                                FabricaEstadoPropietario.crearEstado("Habilitado", prop2));
 
                 propietarios.add(prop1);
                 propietarios.add(prop2);
