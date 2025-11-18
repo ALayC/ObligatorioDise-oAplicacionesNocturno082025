@@ -34,7 +34,7 @@ public class SistemaTablero {
                 new Respuesta("transitos", trans),
                 new Respuesta("notificaciones", notifs));
     }
-
+    //propioetario borra sus propios notifiacinoes
     public int borrarNotificaciones(Propietario p) {
         int cant = p.cantidadNotificaciones();
         if (cant > 0) {
