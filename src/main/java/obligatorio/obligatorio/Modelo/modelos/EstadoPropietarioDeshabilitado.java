@@ -1,12 +1,18 @@
 package obligatorio.obligatorio.Modelo.modelos;
 
-public class EstadoPropietarioDeshabilitado extends EstadoPropietario {
+public final class EstadoPropietarioDeshabilitado extends EstadoPropietario {
+
     public EstadoPropietarioDeshabilitado(Propietario propietario) {
-        super(propietario, "Deshabilitado");
+        super(propietario);
+    }
+
+    @Override
+    public String getNombre() {
+        return "Deshabilitado";
     }
 
     @Override
     public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
-        throw new ObligatorioException("El propietario está deshabilitado. No se pueden asignar bonificaciones");
+        throw new ObligatorioException("El propietario esta deshabilitado. No se pueden asignar bonificaciones");
     }
 }

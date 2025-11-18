@@ -1,12 +1,18 @@
 package obligatorio.obligatorio.Modelo.modelos;
 
-public class EstadoPropietarioPenalizado extends EstadoPropietario {
+public final class EstadoPropietarioPenalizado extends EstadoPropietario {
+
     public EstadoPropietarioPenalizado(Propietario propietario) {
-        super(propietario, "Penalizado");
+        super(propietario);
+    }
+
+    @Override
+    public String getNombre() {
+        return "Suspendido";
     }
 
     @Override
     public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
-        throw new ObligatorioException("El propietario está penalizado. No se pueden asignar bonificaciones");
+        propietario.asignarBonificacionInterna(bonificacion, puesto);
     }
 }

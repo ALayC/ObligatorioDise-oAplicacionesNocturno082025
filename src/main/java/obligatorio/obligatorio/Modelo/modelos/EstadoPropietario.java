@@ -1,17 +1,14 @@
 package obligatorio.obligatorio.Modelo.modelos;
 
 public abstract class EstadoPropietario {
-    protected Propietario propietario;
-    protected String nombre;
+    protected final Propietario propietario;
 
-    public EstadoPropietario(Propietario propietario, String nombre) {
+    protected EstadoPropietario(Propietario propietario) {
         this.propietario = propietario;
-        this.nombre = nombre;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public abstract String getNombre();
 
     public abstract void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException;
 }
+

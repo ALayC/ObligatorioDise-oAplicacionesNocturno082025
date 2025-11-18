@@ -1,4 +1,3 @@
-
 package obligatorio.obligatorio.Modelo.modelos;
 
 import java.math.BigDecimal;
@@ -23,14 +22,13 @@ import obligatorio.obligatorio.observador.Observable;
 
 public final class Propietario extends Observable {
 
-    
-    public enum Eventos { 
-        TRANSITO_REALIZADO, 
-        SALDO_BAJO, 
+    public enum Eventos {
+        TRANSITO_REALIZADO,
+        SALDO_BAJO,
         CAMBIO_ESTADO,
         BONIFICACION_ASIGNADA
     }
-    
+
     private String cedula;
     private String password;
     private String nombreCompleto;
@@ -62,16 +60,19 @@ public final class Propietario extends Observable {
     public void setSaldoActual(BigDecimal saldoActual) { this.saldoActual = saldoActual; }
     public BigDecimal getSaldoMinimoAlerta() { return saldoMinimoAlerta; }
     public void setSaldoMinimoAlerta(BigDecimal saldoMinimoAlerta) { this.saldoMinimoAlerta = saldoMinimoAlerta; }
+
     public EstadoPropietario getEstadoPropietario() {
         return estadoPropietario;
     }
     public void setEstadoPropietario(EstadoPropietario estadoPropietario) {
         this.estadoPropietario = Objects.requireNonNull(estadoPropietario);
     }
-        // Delegación de la acción de asignar bonificación al estado actual
+
+    // Delegación de la acción de asignar bonificación al estado actual (STATE + EXPERTO)
     public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
-            estadoPropietario.asignarBonificacion(bonificacion, puesto);
-        }
+        estadoPropietario.asignarBonificacion(bonificacion, puesto);
+    }
+
     public Set<Vehiculo> getVehiculos() { return Collections.unmodifiableSet(vehiculos); }
     public List<Notificacion> getNotificaciones() { return Collections.unmodifiableList(notificaciones); }
     public Set<AsignacionBonificacion> getAsignaciones() { return Collections.unmodifiableSet(asignaciones); }
@@ -91,11 +92,32 @@ public final class Propietario extends Observable {
         return false;
     }
 
+    /**
+     * Núcleo EXPERTO para el CU Asignar bonificación.
+     * Debe ser llamado por los estados cuando permiten asignar.
+     */
+    public void asignarBonificacionInterna(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
+        Objects.requireNonNull(bonificacion, "Bonificación requerida");
+        Objects.requireNonNull(puesto, "Puesto requerido");
+
+        if (tieneBonificacionParaPuesto(puesto)) {
+            throw new ObligatorioException("Ya tiene una bonificación asignada para ese puesto");
+        }
+
+        AsignacionBonificacion asignacion = new AsignacionBonificacion(
+                this,
+                puesto,
+                bonificacion,
+                LocalDate.now()
+        );
+
+        agregarAsignacionBonificacion(asignacion);
+    }
+
     // Agrega una asignación de bonificación al propietario
     public void agregarAsignacionBonificacion(AsignacionBonificacion asignacion) {
         asignaciones.add(asignacion);
         avisar(Eventos.BONIFICACION_ASIGNADA);
-
     }
 
     @Override
@@ -116,8 +138,6 @@ public final class Propietario extends Observable {
         super.avisar(evento);
     }
 
-
-    
     @Override
     public boolean equals(Object o){ return o instanceof Propietario p && getCedula().equals(p.getCedula()); }
     @Override
@@ -132,7 +152,9 @@ public final class Propietario extends Observable {
             return "El propietario ya está en estado " + estadoPropietario.getNombre();
         }
         setEstadoPropietario(crearEstadoPropietarioParaPropietario(this, nuevoEstado));
-        notificaciones.add(new Notificacion("Se ha cambiado tu estado en el sistema. Tu estado actual es " + nuevoEstado, java.time.LocalDate.now()));
+        notificaciones.add(new Notificacion(
+                "Se ha cambiado tu estado en el sistema. Tu estado actual es " + nuevoEstado,
+                LocalDate.now()));
         avisar(Eventos.CAMBIO_ESTADO); // Notifica a los observadores del cambio de estado
         return "Estado cambiado correctamente";
     }
@@ -152,8 +174,10 @@ public final class Propietario extends Observable {
         }
     }
 
-     //refactor tablero propietario
-      public List<Respuesta> armarRespuestasTablero(List<Transito> todosLosTransitos) {
+    // ----------------- Tablero propietario (EXP) -----------------
+
+    // refactor tablero propietario
+    public List<Respuesta> armarRespuestasTablero(List<Transito> todosLosTransitos) {
         CabeceraPropietarioDTO cabecera = construirCabecera();
         List<BonificacionAsignadaDTO> bonis = construirBonificaciones();
         List<VehiculoResumenDTO> vehs = construirVehiculos(todosLosTransitos);
@@ -263,9 +287,11 @@ public final class Propietario extends Observable {
         return todosLosTransitos.stream()
                 .filter(t -> matriculasProp.contains(t.getVehiculo().getMatricula()))
                 .collect(Collectors.toList());
-    }   
+    }
 
-        public void validarPuedeRealizarTransito() throws ObligatorioException {
+    // ----------------- Lógica de tránsito -----------------
+
+    public void validarPuedeRealizarTransito() throws ObligatorioException {
         String estado = estadoPropietario != null ? estadoPropietario.getNombre() : null;
         if (estado == null) return;
         if (estado.equalsIgnoreCase("Deshabilitado")) {
