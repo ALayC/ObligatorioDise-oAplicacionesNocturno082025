@@ -103,7 +103,7 @@ public class Fachada extends Observable {
 
     public Sesion loginPropietario(String cedula, String pwd) throws ObligatorioException {
         Sesion s = sAcceso.loginPropietario(cedula, pwd);
-        System.out.println("🔑 Login propietario: " + s.getPropietario().getNombreCompleto() + " - Avisando cambioListaSesiones");
+        System.out.println(" Login propietario: " + s.getPropietario().getNombreCompleto() + " - Avisando cambioListaSesiones");
         avisar(Eventos.cambioListaSesiones);
         return s;
     }
@@ -127,8 +127,11 @@ public class Fachada extends Observable {
         avisar(Eventos.cambioListaSesiones);
     }
 
+    //TODO: esto se resuelve con los dtos o en contreller no aca en fachada. Este es lopgica no va en el sistema de tablero
     public List<Respuesta> armarRespuestasTablero(Propietario p) { return sTablero.armarRespuestasTablero(p); }
 
+
+     //esto es logica no va aca
     public int borrarNotificaciones(Propietario p) {
         int borradas = sTablero.borrarNotificaciones(p);
         avisar(Eventos.notificacionesActualizadas);

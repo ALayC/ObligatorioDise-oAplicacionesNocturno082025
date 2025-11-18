@@ -16,7 +16,10 @@ public class EstadoPropietarioHabilitado extends EstadoPropietario {
         if (propietario.tieneBonificacionParaPuesto(puesto)) {
             throw new ObligatorioException("Ya tiene una bonificación asignada para ese puesto");
         }
-        // Crear la asignación usando la firma correcta: Propietario, Puesto, Bonificacion, LocalDate
+
+
+
+        //PREGUNTA A PRFE: ESTO ROMPE EXPERTO?? Entiendo que no porque es el propietario mismo que se lo asigna
         AsignacionBonificacion asignacion = new AsignacionBonificacion(propietario, puesto, bonificacion, java.time.LocalDate.now());
         propietario.agregarAsignacionBonificacion(asignacion);
     }

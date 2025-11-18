@@ -16,7 +16,8 @@ public final class Propietario extends Observable {
     public enum Eventos { 
         TRANSITO_REALIZADO, 
         SALDO_BAJO, 
-        CAMBIO_ESTADO
+        CAMBIO_ESTADO,
+        BONIFICACION_ASIGNADA
     }
     
     private String cedula;
@@ -82,6 +83,8 @@ public final class Propietario extends Observable {
     // Agrega una asignación de bonificación al propietario
     public void agregarAsignacionBonificacion(AsignacionBonificacion asignacion) {
         asignaciones.add(asignacion);
+        avisar(Eventos.BONIFICACION_ASIGNADA);
+
     }
 
     @Override

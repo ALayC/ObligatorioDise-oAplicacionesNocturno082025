@@ -160,10 +160,9 @@ public class ControladorAsignarBonificaciones implements Observador {
 
     @Override
     public void actualizar(Object evento, Observable origen) {
-        // Aquí puedes enviar actualizaciones SSE si lo necesitas
-        // Ejemplo: enviar la lista actualizada de bonificaciones
-        if (conexionNavegador.getConexionSSE() != null) {
-            conexionNavegador.enviarJSON(fachada.getBonificacionesDefinidas());
+        // Enviar el tablero completo del propietario afectado
+        if (origen instanceof Propietario propietario && conexionNavegador.getConexionSSE() != null) {
+            conexionNavegador.enviarJSON(fachada.armarRespuestasTablero(propietario));
         }
     }
 }

@@ -185,6 +185,13 @@
 
     function mostrar_bonificaciones(lista) {
       console.log("mostrar_bonificaciones llamada con:", lista);
+      if (!Array.isArray(lista)) {
+        console.warn("El parámetro recibido no es un array:", lista);
+      } else {
+        lista.forEach((b, i) => {
+          console.log(`Bonificación[${i}]:`, b);
+        });
+      }
       const tbody = document.getElementById('tbodyBonificaciones'); tbody.innerHTML = "";
       if (!lista || !lista.length) { tbody.innerHTML = `<tr><td colspan="3">Sin bonificaciones</td></tr>`; return; }
       for (const b of lista) {
