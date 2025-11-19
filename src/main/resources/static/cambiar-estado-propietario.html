@@ -6,17 +6,21 @@
     <link rel="stylesheet" href="Estilos.css">
     <script src="vistaWeb.js"></script>
     <script src="sse.js"></script>
-    <script defer src="utilesVista.js"></script>
 </head>
 <body>
+    <script src="utilesVista.js"></script>
+
     <div class="login-container" style="max-width: 900px; text-align: left;">
         <h2 style="margin-bottom: 10px;">Cambiar estado de propietario</h2>
-        <p style="color: #555; margin-bottom: 18px;">Ingrese la cédula, revise el estado actual y seleccione un nuevo estado.</p>
+        <p style="color: #555; margin-bottom: 18px;">
+            Ingrese la cédula, revise el estado actual y seleccione un nuevo estado.
+        </p>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
             <!-- Columna izquierda: cédula y búsqueda -->
             <div>
                 <label style="font-weight: bold; margin-bottom: 8px; display: block;">Cédula de identidad</label>
-                <form id="formBuscar" style="margin-bottom: 18px;">
+                <form id="formBuscar" style="margin-bottom: 18px;" onsubmit="buscarPropietario(event)">
                     <div class="input-group" style="margin-bottom: 0;">
                         <input type="text" id="cedula" name="cedula" required />
                     </div>
@@ -30,85 +34,133 @@
                     </div>
                 </div>
             </div>
+
             <!-- Columna derecha: estados -->
             <div>
                 <label style="font-weight: bold; margin-bottom: 8px; display: block;">Estados definidos</label>
-                <form id="formCambiarEstado">
+                <form id="formCambiarEstado" onsubmit="cambiarEstado(event)">
                     <div class="input-group">
-                        <select id="estados" name="estados"></select>
+                        <select id="estados" name="nuevoEstado"></select>
                     </div>
                     <button type="submit" style="width: 100%;">Cambiar estado</button>
                 </form>
                 <p id="mensajeEstado" style="margin-top: 18px;"></p>
             </div>
         </div>
-        <footer style="margin-top: 18px; color: #888; font-size: 13px; text-align:center;">© 2025 – Administración</footer>
+
+        <footer style="margin-top: 18px; color: #888; font-size: 13px; text-align:center;">
+            © 2025 – Administración
+        </footer>
     </div>
+
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const formBuscar = document.getElementById('formBuscar');
-        const formCambiarEstado = document.getElementById('formCambiarEstado');
-        const cedulaInput = document.getElementById('cedula');
-        const nombrePropietario = document.getElementById('nombrePropietario');
-        const estadoActual = document.getElementById('estadoActual');
-        const estadosSelect = document.getElementById('estados');
-        const datosPropietario = document.getElementById('datosPropietario');
-        const mensajeEstado = document.getElementById('mensajeEstado');
+        urlIniciarVista   = "/cambiar-estado-propietario/vistaConectada";
+        urlCierreVista    = "/cambiar-estado-propietario/vistaCerrada";
+        urlRegistroSSE    = "/cambiar-estado-propietario/registrarSSE";
 
-        // Buscar propietario
-        formBuscar.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const cedula = cedulaInput.value;
-            fetch(`/cambiar-estado-propietario/buscar?cedula=${cedula}`)
-                .then(res => res.json())
-                .then(data => {
-                    console.log('[buscar] data recibida:', data);
-                    if (!data || !data.cedula) {
-                        mensajeEstado.textContent = 'No existe el propietario';
-                        datosPropietario.style.display = 'none';
-                        return;
-                    }
-                    // Mostrar nombre y estado actual como en asignar bonificaciones
-                    nombrePropietario.textContent = data.nombreCompleto;
-                    estadoActual.textContent = data.estado;
-                    // Obtener estados
-                    fetch('/cambiar-estado-propietario/estados')
-                        .then(res => res.json())
-                        .then(estados => {
-                            estadosSelect.innerHTML = '';
-                            estados.forEach(est => {
-                                const option = document.createElement('option');
-                                option.value = est;
-                                option.textContent = est;
-                                if (est === data.estado) option.selected = true;
-                                estadosSelect.appendChild(option);
-                            });
-                            datosPropietario.style.display = '';
-                            mensajeEstado.textContent = '';
-                        });
-                });
-        });
+        const formBuscar         = document.getElementById('formBuscar');
+        const formCambiarEstado  = document.getElementById('formCambiarEstado');
+        const cedulaInput        = document.getElementById('cedula');
+        const nombrePropietario  = document.getElementById('nombrePropietario');
+        const estadoActual       = document.getElementById('estadoActual');
+        const estadosSelect      = document.getElementById('estados');
+        const datosPropietario   = document.getElementById('datosPropietario');
+        const mensajeEstado      = document.getElementById('mensajeEstado');
 
-        // Cambiar estado
-        formCambiarEstado.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const cedula = cedulaInput.value;
-            const nuevoEstado = estadosSelect.value;
-            fetch(`/cambiar-estado-propietario/cambiar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `cedula=${encodeURIComponent(cedula)}&nuevoEstado=${encodeURIComponent(nuevoEstado)}`
-            })
-            .then(res => res.text())
-            .then(msg => {
-                mensajeEstado.textContent = msg;
-                // Actualizar estado actual si fue exitoso
-                if (msg.includes('correctamente')) {
-                    estadoActual.textContent = nuevoEstado;
-                }
+
+
+        function buscarPropietario(event) {
+            event.preventDefault();
+            mensajeEstado.textContent = "";
+            submit("/cambiar-estado-propietario/buscar",
+                   serializarFormulario("formBuscar"));
+        }
+
+        function cambiarEstado(event) {
+            event.preventDefault();
+            mensajeEstado.textContent = "";
+            submit("/cambiar-estado-propietario/cambiar",
+                   serializarFormulario("formCambiarEstado") +
+                   "&cedula=" + encodeURIComponent(cedulaInput.value));
+        }
+
+
+        function mostrar_estados(estados) {
+            estadosSelect.innerHTML = "";
+            if (!Array.isArray(estados)) return;
+
+            estados.forEach(est => {
+                const option = document.createElement("option");
+                option.value = est;
+                option.textContent = est;
+                estadosSelect.appendChild(option);
             });
-        });
-    });
+        }
+
+
+        function mostrar_propietarioBusqueda(dto) {
+            if (!dto) {
+                datosPropietario.style.display = "none";
+                nombrePropietario.textContent = "";
+                estadoActual.textContent = "";
+                return;
+            }
+
+            nombrePropietario.textContent = dto.nombreCompleto;
+            estadoActual.textContent      = dto.estado;
+            datosPropietario.style.display = "";
+
+
+            if (dto.estado) {
+                for (let i = 0; i < estadosSelect.options.length; i++) {
+                    if (estadosSelect.options[i].value === dto.estado) {
+                        estadosSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+
+        function mostrar_mensajeEstado(texto) {
+            mensajeEstado.textContent = texto || "";
+        }
+
+
+        function mostrar_cambioEstadoPropietario(dto) {
+
+            mostrar_propietarioBusqueda(dto);
+
+            mensajeEstado.textContent = "El estado fue actualizado desde otra operación.";
+        }
+
+
+        async function excepcionDeAplicacion(mensaje) {
+            await mostrarMensaje(mensaje);
+        }
+
+        function procesarErrorSubmit(status, text) {
+            if (status === 400) {
+
+                window.location.href = "login-admin.html";
+            } else {
+                console.error("Error en submit:", status, text);
+            }
+        }
+
+
+        async function conexionSSECerrada(event) {
+            let respuesta = await mostrarConfirmacion(
+                "Se ha cerrado la aplicación en esta ventana",
+                "Intentar volver a abrirla",
+                "Cerrar"
+            );
+            if (respuesta) {
+                location.reload();
+            } else {
+                document.body.innerHTML = "";
+            }
+        }
     </script>
 </body>
 </html>
