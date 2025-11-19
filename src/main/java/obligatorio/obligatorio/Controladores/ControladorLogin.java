@@ -18,17 +18,17 @@ import obligatorio.obligatorio.Modelo.modelos.Sesion;
 @RequestMapping("/acceso")
 public class ControladorLogin {
 
-@PostMapping("/loginPropietario")
-public List<Respuesta> loginPropietario(
-        @RequestParam String cedula,
-        @RequestParam String password,
-        HttpSession sesionHttp) throws ObligatorioException {
-    Sesion sesion = Fachada.getInstancia().loginPropietario(cedula, password);
-    sesionHttp.setAttribute("usuarioPropietario", sesion);
-    sesionHttp.setAttribute("propietario", sesion.getPropietario());
+    @PostMapping("/loginPropietario")
+    public List<Respuesta> loginPropietario(
+            @RequestParam String cedula,
+            @RequestParam String password,
+            HttpSession sesionHttp) throws ObligatorioException {
+        Sesion sesion = Fachada.getInstancia().loginPropietario(cedula, password);
+        sesionHttp.setAttribute("usuarioPropietario", sesion);
+        sesionHttp.setAttribute("propietario", sesion.getPropietario());
 
-    return Respuesta.lista(new Respuesta("loginExitoso", "TableroControlPropietario.html"));
-}
+        return Respuesta.lista(new Respuesta("loginExitoso", "TableroControlPropietario.html"));
+    }
 
     @PostMapping("/loginAdministrador")
     public List<Respuesta> loginAdministrador(
@@ -37,7 +37,7 @@ public List<Respuesta> loginPropietario(
             HttpSession sesionHttp) throws ObligatorioException {
         Administrador admin = Fachada.getInstancia().loginAdministrador(cedula, password);
         sesionHttp.setAttribute("usuarioAdmin", admin);
-        return Respuesta.lista(new Respuesta("loginExitoso", "monitor-actividad.html"));
+        return Respuesta.lista(new Respuesta("loginExitoso", "panel-admin.html"));
     }
 
     @PostMapping("/logoutPropietario")
