@@ -4,15 +4,17 @@ package obligatorio.obligatorio.Controladores;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
+import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import obligatorio.obligatorio.DTO.PuestoDTO;
 import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
@@ -26,7 +28,8 @@ import obligatorio.obligatorio.observador.Observador;
 
 /**
  * Controlador para CU Emular tránsito + Monitor en tiempo real (SSE).
- * Actúa como Observador de la Fachada, con scope de sesión (un observador por admin conectado).
+ * Actúa como Observador de la Fachada, con scope de sesión (un observador por
+ * admin conectado).
  */
 @RestController
 @RequestMapping("/admin")
@@ -34,17 +37,20 @@ import obligatorio.obligatorio.observador.Observador;
 public class ControladorAdmin implements Observador {
 
     private final ConexionNavegador conexionNavegador;
-    
+
     public ControladorAdmin(@Autowired ConexionNavegador conexionNavegador) {
         this.conexionNavegador = conexionNavegador;
     }
-        @PostMapping("/registrarSSE")
-    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter registrarSSE(@SessionAttribute(name = "usuarioAdmin") Administrador admin) {
+
+    @GetMapping(value = "/registrarSSE", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter registrarSSE(@SessionAttribute(name = "usuarioAdmin") Administrador admin) {
         conexionNavegador.conectarSSE();
         return conexionNavegador.getConexionSSE();
     }
+
     /**
-     * Endpoint inicial que registra al controlador como observador y devuelve datos base.
+     * Endpoint inicial que registra al controlador como observador y devuelve datos
+     * base.
      */
     @PostMapping("/vistaConectada")
     public Object vistaConectada(@SessionAttribute(name = "usuarioAdmin") Administrador admin) {
@@ -55,9 +61,8 @@ public class ControladorAdmin implements Observador {
         Fachada.getInstancia().agregarObservador(this);
 
         return Respuesta.lista(
-            new Respuesta("infoAdmin", admin.getNombreCompleto()),
-            new Respuesta("puestos", puestosDTO)
-        );
+                new Respuesta("infoAdmin", admin.getNombreCompleto()),
+                new Respuesta("puestos", puestosDTO));
     }
 
     @PostMapping("/obtenerTarifas")
@@ -69,9 +74,8 @@ public class ControladorAdmin implements Observador {
             List<TarifaDTO> tarifasDTO = Fachada.getInstancia().getTarifasPorPuesto(nombrePuesto);
 
             return Respuesta.lista(
-                new Respuesta("tarifas", tarifasDTO)
-            );
-            
+                    new Respuesta("tarifas", tarifasDTO));
+
         } catch (ObligatorioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -91,11 +95,10 @@ public class ControladorAdmin implements Observador {
 
             // Emular tránsito
             ResultadoEmulacionDTO resultado = Fachada.getInstancia()
-                .emularTransito(matricula, nombrePuesto, fecha, hora);
+                    .emularTransito(matricula, nombrePuesto, fecha, hora);
 
             return Respuesta.lista(
-                new Respuesta("resultadoEmulacion", resultado)
-            );
+                    new Respuesta("resultadoEmulacion", resultado));
 
         } catch (ObligatorioException e) {
             return ResponseEntity.status(299).body(e.getMessage());
@@ -111,7 +114,8 @@ public class ControladorAdmin implements Observador {
 
     @Override
     public void actualizar(Object evento, Observable origen) {
-        if (!(evento instanceof Fachada.Eventos)) return;
+        if (!(evento instanceof Fachada.Eventos))
+            return;
         Fachada.Eventos ev = (Fachada.Eventos) evento;
         switch (ev) {
             case transitoRegistrado -> {

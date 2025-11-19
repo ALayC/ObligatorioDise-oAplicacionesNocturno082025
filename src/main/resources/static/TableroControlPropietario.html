@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,8 +18,8 @@
     window.urlCierreVista = "/propietario/vistaCerrada";
     window.parametrosCierreVista = "";
 
-      // Configuración SSE para actualizaciones automáticas
-      window.urlRegistroSSE = "/propietario/registrarSSE";
+    // Configuración SSE para actualizaciones automáticas
+    window.urlRegistroSSE = "/propietario/registrarSSE";
 
     // si no hay sesión, redirige a login
     window.procesarErrorSubmit = function (status, text) {
@@ -30,60 +31,211 @@
       alert("Se produjo un error");
     };
 
-      // Mostrar indicador de actualización automática cuando SSE esté activo
-      window.conexionSSECerrada = function() {
-        document.getElementById('autoRefreshStatus').style.display = 'none';
-      };
-      window.procesarMensajeSSE = function(mensaje) {
-        document.getElementById('autoRefreshStatus').style.display = '';
-        procesarResultadosSubmit(mensaje);
-      };
+    // Mostrar indicador de actualización automática cuando SSE esté activo
+    window.conexionSSECerrada = function () {
+      document.getElementById('autoRefreshStatus').style.display = 'none';
+    };
+    window.procesarMensajeSSE = function (mensaje) {
+      document.getElementById('autoRefreshStatus').style.display = '';
+      procesarResultadosSubmit(mensaje);
+    };
   </script>
 
   <!-- 3) utilidades. Dejalo después para asegurar la versión correcta de serializarFormulario -->
   <script defer src="utilesVista.js"></script>
 
   <style>
-    .wrap { max-width: 1100px; margin: 16px auto; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 14px; }
-    .card h3 { margin: 0 0 8px 0; font-size: 1rem; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .pill { background: #f6f7fb; border: 1px solid #e5e7f0; border-radius: 10px; padding: 10px; }
-    .k { font-size: .78rem; color: #666; display: block; }
-    .v { font-weight: 600; }
-    table { width: 100%; border-collapse: collapse; }
-    thead th { text-align: left; background: #f6f7fb; font-weight: 600; border-bottom: 1px solid #e5e7f0; padding: 8px; }
-    tbody td { border-bottom: 1px solid #f0f1f6; padding: 8px; }
-    .toolbar { display: flex; justify-content: flex-end; margin-top: 8px; }
-    .btn { background: #e83e8c; color: #fff; border: 0; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
-    .btn:disabled { opacity: .5; cursor: default; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .topbar a { color: #888; text-decoration: none; }
-    .auto-refresh-indicator { 
-      display: inline-flex; 
-      align-items: center; 
-      gap: 6px; 
-      font-size: 0.85rem; 
-      color: #28a745; 
-      background: #f0f9f4; 
-      padding: 4px 10px; 
-      border-radius: 12px;
-      border: 1px solid #d4edda;
+    /* Layout general del tablero */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      color: #333;
     }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 24px auto;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      padding: 14px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+      color: #212121;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .pill {
+      background: #e3f2fd;
+      /* celeste suave */
+      border: 1px solid #bbdefb;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    /* Label arriba: chiquita, gris, mayúsculas */
+    .v-label {
+      display: block;
+      font-size: 0.7rem;
+      color: #607d8b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+
+    /* Valor abajo: más grande y fuerte */
+    .v {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #212121;
+    }
+
+    /* Tablas */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      text-align: left;
+      background: #1976d2;
+      /* azul principal */
+      color: #ffffff;
+      font-weight: 600;
+      border-bottom: 1px solid #1565c0;
+      padding: 8px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody td {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 8px;
+      font-size: 0.9rem;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    /* Toolbar inferior (botón borrar) */
+    .toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    .btn {
+      background: #e91e63;
+      /* fucsia material para acción “fuerte” */
+      color: #ffffff;
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background: #d81b60;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Top bar con título + enlace salir */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #212121;
+    }
+
+    .topbar a {
+      color: #757575;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .topbar a:hover {
+      text-decoration: underline;
+    }
+
+    .auto-refresh-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #2e7d32;
+      background: #e8f5e9;
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid #c8e6c9;
+    }
+
     .auto-refresh-indicator::before {
-      content: "🔄";
+      content: "⟳";
       animation: spin 2s linear infinite;
     }
+
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
+
+    /* Responsive */
     @media (max-width: 900px) {
-      .row { grid-template-columns: 1fr; }
-      .grid-3 { grid-template-columns: 1fr; }
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
+
 </head>
 
 <body>
@@ -102,9 +254,18 @@
     <div class="card">
       <h3>Resumen del propietario</h3>
       <div class="grid-3">
-        <div class="pill"><span class="k">NOMBRE COMPLETO</span><span id="cabeceraNombre" class="v">—</span></div>
-        <div class="pill"><span class="k">ESTADO</span><span id="cabeceraEstado" class="v">—</span></div>
-        <div class="pill"><span class="k">SALDO ACTUAL</span><span id="cabeceraSaldo" class="v">—</span></div>
+        <div class="pill">
+          <span class="v-label">Nombre completo</span>
+          <span class="v" id="cabeceraNombre">Walter</span>
+        </div>
+        <div class="pill">
+          <span class="v-label">Estado</span>
+          <span class="v" id="cabeceraEstado">Habilitado</span>
+        </div>
+        <div class="pill">
+          <span class="v-label">Saldo actual</span>
+          <span class="v" id="cabeceraSaldo">$ 2.000,00</span>
+        </div>
       </div>
     </div>
 
@@ -114,10 +275,16 @@
         <h3>Bonificaciones asignadas</h3>
         <table>
           <thead>
-            <tr><th>Bonificación</th><th>Puesto</th><th>Fecha asignada</th></tr>
+            <tr>
+              <th>Bonificación</th>
+              <th>Puesto</th>
+              <th>Fecha asignada</th>
+            </tr>
           </thead>
           <tbody id="tbodyBonificaciones">
-            <tr><td colspan="3">Sin bonificaciones</td></tr>
+            <tr>
+              <td colspan="3">Sin bonificaciones</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -127,10 +294,18 @@
         <h3>Vehículos registrados</h3>
         <table>
           <thead>
-            <tr><th>Matrícula</th><th>Modelo</th><th>Color</th><th>Tránsitos</th><th>Monto total</th></tr>
+            <tr>
+              <th>Matrícula</th>
+              <th>Modelo</th>
+              <th>Color</th>
+              <th>Tránsitos</th>
+              <th>Monto total</th>
+            </tr>
           </thead>
           <tbody id="tbodyVehiculos">
-            <tr><td colspan="5">Sin vehículos</td></tr>
+            <tr>
+              <td colspan="5">Sin vehículos</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -142,12 +317,21 @@
       <table>
         <thead>
           <tr>
-            <th>Puesto</th><th>Matrícula</th><th>Tarifa</th><th>Monto tarifa</th>
-            <th>Bonificación</th><th>Monto bonificación</th><th>Monto pagado</th><th>Fecha</th><th>Hora</th>
+            <th>Puesto</th>
+            <th>Matrícula</th>
+            <th>Tarifa</th>
+            <th>Monto tarifa</th>
+            <th>Bonificación</th>
+            <th>Monto bonificación</th>
+            <th>Monto pagado</th>
+            <th>Fecha</th>
+            <th>Hora</th>
           </tr>
         </thead>
         <tbody id="tbodyTransitos">
-          <tr><td colspan="9">Sin tránsitos</td></tr>
+          <tr>
+            <td colspan="9">Sin tránsitos</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -162,10 +346,15 @@
       </div>
       <table>
         <thead>
-          <tr><th>Fecha y hora</th><th>Mensaje</th></tr>
+          <tr>
+            <th>Fecha y hora</th>
+            <th>Mensaje</th>
+          </tr>
         </thead>
         <tbody id="tbodyNotificaciones">
-          <tr><td colspan="2">Sin notificaciones</td></tr>
+          <tr>
+            <td colspan="2">Sin notificaciones</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -201,7 +390,7 @@
           const partes = b.fechaAsignada.split("T");
           if (partes.length === 2) {
             const [y, m, d] = partes[0].split("-");
-            const hora = partes[1].substring(0,5);
+            const hora = partes[1].substring(0, 5);
             fecha = `${d}/${m}/${y} ${hora}`;
           } else {
             fecha = b.fechaAsignada;
@@ -273,7 +462,9 @@
 
   </script>
 </body>
+
 </html>
-  </script>
+</script>
 </body>
+
 </html>

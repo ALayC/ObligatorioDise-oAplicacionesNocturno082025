@@ -1,78 +1,157 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
-    <link rel="stylesheet" href="Estilos.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Contenedor general: sidebar + contenido */
+        .layout {
+            display: flex;
+            /* columna izquierda + derecha */
+            min-height: 100vh;
+        }
+
+        /* Sidebar izquierda */
+        .sidebar {
+            width: 260px;
+            background: #1976d2;
+            color: #fff;
+            padding: 24px 16px;
+
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-title {
+            font-size: 28px;
+            line-height: 1.2;
+            margin: 0 0 40px 4px;
+        }
+
+        .sidebar button {
+            background: none;
+            border: none;
+            color: #fff;
+            padding: 14px 0;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: left;
+            padding-left: 16px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .sidebar button:hover {
+            background: #1565c0;
+        }
+
+        .sidebar .logout-btn {
+            margin-top: auto;
+            margin-bottom: 10px;
+            background-color: #b22222;
+            padding-left: 16px;
+            border-radius: 6px;
+        }
+
+        .sidebar .logout-btn:hover {
+            background-color: #8b0000;
+        }
+
+        .main {
+            flex: 1;
+            /* ocupa todo el espacio restante */
+            padding: 24px;
+            background: #f0f2f5;
+        }
+
+        /* Iframe con las vistas internas */
+        #contenidoFrame {
+            width: 100%;
+            height: calc(100vh - 48px);
+            /* casi toda la altura disponible */
+            border: none;
+            display: block;
+            background: transparent;
+        }
+    </style>
+
     <script src="vistaWeb.js"></script>
     <script src="sse.js"></script>
 </head>
+
 <body>
     <script src="utilesVista.js"></script>
 
-    <!-- Barra lateral -->
-    <div class="sidebar">
-        <h2 style="margin-bottom: 20px;">Panel de Administración</h2>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h1 class="sidebar-title">
+                Panel de<br>Administración
+            </h1>
 
-        <button onclick="cargarContenido('monitor-actividad.html')">
-            Monitor de actividad
-        </button>
+            <button onclick="cargarContenido('monitor-actividad.html')">
+                Monitor de actividad
+            </button>
 
-        <button onclick="cargarContenido('asignar-bonificaciones.html')">
-            Asignar bonificaciones
-        </button>
+            <button onclick="cargarContenido('asignar-bonificaciones.html')">
+                Asignar bonificaciones
+            </button>
 
-        <button onclick="cargarContenido('cambiar-estado-propietario.html')">
-            Cambiar estado de propietario
-        </button>
+            <button onclick="cargarContenido('cambiar-estado-propietario.html')">
+                Cambiar estado de propietario
+            </button>
 
-        <button onclick="logout()" style="margin-top:auto; background-color:#b22222;">
-            Cerrar sesión
-        </button>
-    </div>
+            <button class="logout-btn" onclick="logout()">
+                Cerrar sesión
+            </button>
+        </aside>
 
-    <!-- Área de contenido -->
-    <div class="content">
-        <iframe id="contenidoFrame"
-                src="monitor-actividad.html"
-                frameborder="0"
-                style="width:100%; height:100vh;"></iframe>
+        <!-- Contenido principal -->
+        <main class="main">
+            <iframe id="contenidoFrame" src="monitor-actividad.html" frameborder="0"></iframe>
+        </main>
     </div>
 
     <script>
         // --- Configuración para vistaWeb / SSE ---
-        // POST inicial cuando la vista está lista (registra observador, etc.)
         window.urlIniciarVista = "/admin/vistaConectada";
-        // Se llama cuando se cierra la página (podés notificar que la vista se cerró)
-        window.urlCierreVista  = "/admin/vistaCerrada";
-        // URL para registrar SSE
-        window.urlRegistroSSE  = "/admin/registrarSSE";
+        window.urlCierreVista = "/admin/vistaCerrada";
+        window.urlRegistroSSE = "/admin/registrarSSE";
 
-        // Carga una de las vistas de admin dentro del iframe
         function cargarContenido(pagina) {
-            document.getElementById('contenidoFrame').src = pagina;
+            var iframe = document.getElementById('contenidoFrame');
+            iframe.src = pagina;
         }
 
-        // Logout de administrador
         function logout() {
             submit("/acceso/logoutAdmin", "");
         }
 
-        // Si el submit devuelve error de sesión, volver al login de admin
         function procesarErrorSubmit(status, text) {
             if (status === 400 || status === 401) {
                 window.location.href = "login-admin.html";
             }
         }
 
-        // El backend, cuando hace logout, te devuelve algo como { paginaLogin : "login-admin.html" }
         function mostrar_paginaLogin(url) {
             window.location.href = url;
         }
 
-        // Cuando llega un mensaje SSE desde el servidor, lo reenviamos al iframe
-        // para que lo procese como si fuera una respuesta AJAX normal.
         function procesarMensajeSSE(mensaje) {
             var iframe = document.getElementById('contenidoFrame');
             if (!iframe || !iframe.contentWindow) return;
@@ -81,11 +160,10 @@
             }
         }
 
-        // Cuando el servidor cierra la conexión SSE
         function conexionSSECerrada(event) {
-            // Si no querés hacer nada especial, podés dejarlo vacío
             console.log("Conexión SSE cerrada", event);
         }
     </script>
 </body>
+
 </html>

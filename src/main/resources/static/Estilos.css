@@ -1,70 +1,30 @@
-body {
-    display: flex;
-    flex-direction: row;
-    margin: 0;
-    padding: 0;
-}
-.content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    width: 100%;
+/* Reset básico */
+* {
     box-sizing: border-box;
 }
 
-/* Estilo para el select de formularios */
-.input-group select {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 13.6px;
-    background: #f8f8f8;
-    color: #333;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    margin-bottom: 5px;
-    transition: border-color 0.2s;
-}
-.input-group select:focus {
-    border-color: #1976d2;
-    outline: none;
-}
-/* Estilo para las labels del menú lateral */
-.sidebar label {
-    display: block;
-    color: #fff;
-    font-size: 17px;
-    font-weight: bold;
-    margin-bottom: 30px;
-    margin-left: 20px;
-    letter-spacing: 1px;
-    text-shadow: 1px 1px 2px #1565c0;
-}
+/* Layout general */
 body {
-    background: #f0f2f5;
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    background: #f0f2f5;
+    font-family: Arial, sans-serif;
 }
 
+/* ====== ESTILOS GENERALES PARA LAS VISTAS INTERNAS ====== */
+
+/* Contenedor tipo “card” que ya usás en las vistas */
 .login-container {
     background: #fff;
-    max-width: 350px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 30px 40px;
     border-radius: 10px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-    text-align: center;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+    text-align: left;
 }
 
-.login-container h2 {
-    margin-bottom: 24px;
-    color: #333;
-}
-
+/* Inputs y selects */
 .input-group {
     margin-bottom: 18px;
     text-align: left;
@@ -84,8 +44,30 @@ body {
     font-size: 13.6px;
 }
 
-button[type="submit"] {
+.input-group select {
     width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 13.6px;
+    background: #f8f8f8;
+    color: #333;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    margin-bottom: 5px;
+    transition: border-color 0.2s;
+}
+
+.input-group select:focus,
+.input-group input:focus {
+    border-color: #1976d2;
+    outline: none;
+}
+
+/* Botones de formularios internos */
+button[type="submit"],
+button[type="button"] {
     padding: 10px;
     background: #1976d2;
     color: #fff;
@@ -96,51 +78,24 @@ button[type="submit"] {
     transition: background 0.2s;
 }
 
-button[type="submit"]:hover {
+button[type="submit"]:hover,
+button[type="button"]:hover {
     background: #1565c0;
 }
 
-/* Estilos del menú lateral */
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 180px;
-    height: 100%;
-    background: #1976d2;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding-top: 40px;
-}
-.sidebar button {
-    background: none;
-    border: none;
-    color: #fff;
-    padding: 18px 0;
-    font-size: 15.3px;
-    cursor: pointer;
-    text-align: left;
-    padding-left: 30px;
-    transition: background 0.2s;
-}
-.sidebar button:hover {
-    background: #1565c0;
-}
-
-
-/* Estilos para tablas */
+/* Tablas dentro de las vistas */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
     background-color: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    overflow: hidden; /* Ensures the border-radius is applied to the table corners */
+    overflow: hidden;
 }
 
-th, td {
+th,
+td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
@@ -165,4 +120,22 @@ tbody tr:hover {
 
 tbody tr:last-child td {
     border-bottom: none;
+}
+
+/* ====== Layout para las vistas cargadas en el iframe ====== */
+
+body.vista-interna {
+    display: flex;
+    justify-content: center;
+    /* centra horizontalmente */
+    align-items: flex-start;
+    /* desde arriba */
+    padding-top: 40px;
+    /* espacio superior */
+}
+
+/* El “card” principal de las vistas internas */
+body.vista-interna .login-container {
+    margin: 0;
+    /* el centrado lo hace el flex del body */
 }

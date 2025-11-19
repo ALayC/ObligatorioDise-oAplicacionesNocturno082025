@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +9,11 @@
   <script src="vistaWeb.js"></script>
   <script src="sse.js"></script>
   <script>
-  // Configuración inicial de la vista y SSE
-  window.urlIniciarVista = "/admin/vistaConectada"; // POST inicial (registra observador y datos base)
-  window.urlCierreVista = "/admin/vistaCerrada";    // POST cierre (quitar observador)
-  window.urlRegistroSSE = "/admin/registrarSSE";    // GET SSE (EventSource)
-    
+    // Configuración inicial de la vista y SSE
+    window.urlIniciarVista = "/admin/vistaConectada"; // POST inicial (registra observador y datos base)
+    window.urlCierreVista = "/admin/vistaCerrada";    // POST cierre (quitar observador)
+    window.urlRegistroSSE = "/admin/registrarSSE";    // GET SSE (EventSource)
+
     // Redirección si la sesión expiró
     window.procesarErrorSubmit = function (status, text) {
       if (status === 400 || status === 401) {
@@ -23,10 +24,12 @@
   </script>
   <script defer src="utilesVista.js"></script>
 </head>
-<body>
+
+<body class="vista-interna">
   <div class="login-container" style="max-width: 900px;">
     <h2 style="text-align:left; margin-bottom: 10px;">Emular tránsito</h2>
-    <p style="color: #555; margin-bottom: 18px; text-align:left;">Seleccione un puesto, verifique sus tarifas, ingrese una matrícula y emule un tránsito.</p>
+    <p style="color: #555; margin-bottom: 18px; text-align:left;">Seleccione un puesto, verifique sus tarifas, ingrese
+      una matrícula y emule un tránsito.</p>
     <form id="formEmular" onsubmit="handleEmularTransito(event)">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
         <!-- Columna izquierda: Puesto y matrícula -->
@@ -58,13 +61,17 @@
               </tr>
             </thead>
             <tbody id="tbodyTarifas">
-              <tr><td colspan="2" style="text-align: center; color: #999;">Se muestran categoría y monto actuales del puesto seleccionado.</td></tr>
+              <tr>
+                <td colspan="2" style="text-align: center; color: #999;">Se muestran categoría y monto actuales del
+                  puesto seleccionado.</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
     </form>
-    <div style="margin-top:25px"><strong>Total tránsitos registrados:</strong> <span id="spanTotalTransitos">0</span></div>
+    <div style="margin-top:25px"><strong>Total tránsitos registrados:</strong> <span id="spanTotalTransitos">0</span>
+    </div>
     <div id="resultado" style="margin-top: 30px; display: none; text-align:left;">
       <h4>Resultado</h4>
       <p><strong>Propietario:</strong> <span id="resPropietario"></span></p>
@@ -73,7 +80,8 @@
       <p><strong>Costo del tránsito:</strong> <span id="resCosto"></span></p>
       <p><strong>Saldo luego del tránsito:</strong> <span id="resSaldo"></span></p>
     </div>
-    <footer style="margin-top: 18px; color: #888; font-size: 13px; text-align:center;">© 2025 – Emular tránsitos</footer>
+    <footer style="margin-top: 18px; color: #888; font-size: 13px; text-align:center;">© 2025 – Emular tránsitos
+    </footer>
   </div>
 
 
@@ -86,9 +94,9 @@
     }
 
     // Total de tránsitos (SSE)
-    function mostrar_totalTransitos(total){
+    function mostrar_totalTransitos(total) {
       const el = document.getElementById('spanTotalTransitos');
-      if(el) el.textContent = total;
+      if (el) el.textContent = total;
     }
 
     // Función para cargar lista de puestos
@@ -96,7 +104,7 @@
       puestosData = lista;
       const select = document.getElementById('puesto');
       select.innerHTML = '<option value="">-- Seleccione un puesto --</option>';
-      
+
       if (!lista || !lista.length) {
         select.innerHTML += '<option value="" disabled>No hay puestos disponibles</option>';
         return;
@@ -114,7 +122,7 @@
     function cargarTarifas() {
       const nombrePuesto = document.getElementById('puesto').value;
       if (!nombrePuesto) {
-        document.getElementById('tbodyTarifas').innerHTML = 
+        document.getElementById('tbodyTarifas').innerHTML =
           '<tr><td colspan="2" style="text-align: center; color: #999;">Se muestran categoría y monto actuales del puesto seleccionado.</td></tr>';
         return;
       }
@@ -126,7 +134,7 @@
     function mostrar_tarifas(lista) {
       const tbody = document.getElementById('tbodyTarifas');
       tbody.innerHTML = "";
-      
+
       if (!lista || !lista.length) {
         tbody.innerHTML = '<tr><td colspan="2" style="text-align: center;">No hay tarifas definidas</td></tr>';
         return;
@@ -168,7 +176,7 @@
       document.getElementById('resBonificacion').textContent = datos.bonificacion || 'Sin bonificación';
       document.getElementById('resCosto').textContent = '$ ' + parseFloat(datos.costoTransito).toFixed(2);
       document.getElementById('resSaldo').textContent = '$ ' + parseFloat(datos.saldoDespues).toFixed(2);
-      
+
       document.getElementById('resultado').style.display = 'block';
     }
 
@@ -185,14 +193,15 @@
     }
 
     // Inicializar fecha y hora actual
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
       const now = new Date();
       // Formato: yyyy-MM-ddTHH:mm
       const pad = n => n.toString().padStart(2, '0');
-      const local = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const local = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
       const fechaHoraInput = document.getElementById('fechaHora');
       if (fechaHoraInput) fechaHoraInput.value = local;
     });
   </script>
 </body>
+
 </html>
