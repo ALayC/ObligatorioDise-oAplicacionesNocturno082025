@@ -226,6 +226,10 @@ public final class Propietario extends Observable {
 
     // ----------------- Tablero propietario (CU 1) -----------------
 
+
+
+    //TODO: ESTO ESTA MAL, SE ARMA EL DTO EN EL CONTROLLER
+
     // refactor tablero propietario
     public List<Respuesta> armarRespuestasTablero(List<Transito> todosLosTransitos) {
         CabeceraPropietarioDTO cabecera = construirCabecera();

@@ -23,7 +23,7 @@ public final class BonificacionFrecuentes extends Bonificacion {
                 .filter(t -> t.getPuesto().equals(puesto))
                 .filter(t -> fecha.equals(t.getFecha()))
                 .count();
-
+        //TODO: SISTEMA TRANISSTO ME TIENE QUE DAR LOS TRANSITOS DE HOY, AC ALOS TENGO QUE RECIBIR . sINO ROMPEMOS EXPERTOS(LA CANTIDAD DE TRASNTISO)                                   
         if (transitosHoy == 0) {
             return montoBase;
         }

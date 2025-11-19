@@ -68,7 +68,7 @@ public class SistemaTransito {
     public List<Transito> getTransitos() {
         return transitos;
     }
-
+    //TODO: LOS DTOS VAN PARA EL CONTROALER. TENER CUIDADO, TRANSITSOS DSON DE PROPIETARIO
     /** Caso de uso: Emular tránsito (orquestador). */
     public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
             throws ObligatorioException {

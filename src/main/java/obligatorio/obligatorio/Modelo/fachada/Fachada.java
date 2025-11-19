@@ -143,6 +143,8 @@ public class Fachada extends Observable {
         return precargaDatos.getEstadosPropietario();
     }
 
+
+    //TODO: ESTO TIENE LOGICA SE TIENE QUE IR DE ACA
     /** Devuelve el propietario por cédula, o null si no existe. */
     public obligatorio.obligatorio.Modelo.modelos.Propietario getPropietarioPorCedula(String cedula) {
         if (cedula == null || cedula.isBlank())
