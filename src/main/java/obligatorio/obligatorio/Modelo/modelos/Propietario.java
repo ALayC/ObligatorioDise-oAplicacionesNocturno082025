@@ -40,13 +40,13 @@ public final class Propietario extends Observable {
     private final Set<AsignacionBonificacion> asignaciones = new HashSet<>();
 
     public Propietario(String cedula, String password, String nombreCompleto,
-            BigDecimal saldoActual, BigDecimal saldoMinimoAlerta, EstadoPropietario estadoPropietario) {
+            BigDecimal saldoActual, BigDecimal saldoMinimoAlerta) {
         this.cedula = Objects.requireNonNull(cedula);
         this.password = Objects.requireNonNull(password);
         this.nombreCompleto = Objects.requireNonNull(nombreCompleto);
         this.saldoActual = Objects.requireNonNull(saldoActual);
         this.saldoMinimoAlerta = Objects.requireNonNull(saldoMinimoAlerta);
-        this.estadoPropietario = estadoPropietario;
+        this.estadoPropietario = FabricaEstadoPropietario.crearEstado("Habilitado", this);
     }
 
     // Getters y setters de Usuario
@@ -98,8 +98,6 @@ public final class Propietario extends Observable {
         this.estadoPropietario = Objects.requireNonNull(estadoPropietario);
     }
 
-    // Delegación de la acción de asignar bonificación al estado actual (STATE +
-    // EXPERTO)
     public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
         estadoPropietario.asignarBonificacion(bonificacion, puesto);
     }
@@ -147,10 +145,6 @@ public final class Propietario extends Observable {
         return false;
     }
 
-    /**
-     * Núcleo EXPERTO para el CU Asignar bonificación.
-     * Debe ser llamado por los estados cuando permiten asignar.
-     */
     public void asignarBonificacionInterna(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
         Objects.requireNonNull(bonificacion, "Bonificación requerida");
         Objects.requireNonNull(puesto, "Puesto requerido");
@@ -202,28 +196,35 @@ public final class Propietario extends Observable {
         return Objects.hash(getCedula());
     }
 
-    public boolean estaHabilitado() {
-        return !(estadoPropietario instanceof EstadoPropietarioDeshabilitado);
-    }
-
     public String cambiarEstadoYNotificar(String nuevoEstado) {
-        if (estadoPropietario != null
-                && estadoPropietario.getNombre().equalsIgnoreCase(nuevoEstado)) {
+        if (estadoPropietario == null) {
+            throw new IllegalStateException("El propietario no tiene un estado asignado.");
+        }
+
+        // Si el estado ya es el mismo, devolver mensaje sin cambios
+        if (estadoPropietario.getNombre().equalsIgnoreCase(nuevoEstado)) {
             return "El propietario ya está en estado " + estadoPropietario.getNombre();
         }
 
+        // Crear el nuevo estado usando la fábrica (puede lanzar excepción si es
+        // inválido)
         EstadoPropietario nuevo = FabricaEstadoPropietario.crearEstado(nuevoEstado, this);
-        setEstadoPropietario(nuevo);
 
+        // Aplicar el nuevo estado
+        this.estadoPropietario = nuevo;
+
+        // Registrar notificación (este CU exige SIEMPRE registrar la notificación)
         notificaciones.add(new Notificacion(
-                "Se ha cambiado tu estado en el sistema. Tu estado actual es " + nuevoEstado,
+                "Se ha cambiado tu estado en el sistema. Tu estado actual es " + nuevo.getNombre(),
                 LocalDate.now()));
 
+        // Avisar a los observadores
         avisar(Eventos.CAMBIO_ESTADO);
+
         return "Estado cambiado correctamente";
     }
 
-    // ----------------- Tablero propietario (EXP) -----------------
+    // ----------------- Tablero propietario (CU 1) -----------------
 
     // refactor tablero propietario
     public List<Respuesta> armarRespuestasTablero(List<Transito> todosLosTransitos) {
@@ -335,26 +336,16 @@ public final class Propietario extends Observable {
     // ----------------- Lógica de tránsito -----------------
 
     public void validarPuedeRealizarTransito() throws ObligatorioException {
-        String estado = estadoPropietario != null ? estadoPropietario.getNombre() : null;
-        if (estado == null)
+        if (estadoPropietario == null) {
             return;
-        if (estado.equalsIgnoreCase("Deshabilitado")) {
-            throw new ObligatorioException(
-                    "El propietario del vehículo está deshabilitado, no puede realizar tránsitos");
         }
-        if (estado.equalsIgnoreCase("Suspendido")) {
-            throw new ObligatorioException("El propietario del vehículo está suspendido, no puede realizar tránsitos");
-        }
-    }
-
-    public boolean estaPenalizado() {
-        String estado = estadoPropietario != null ? estadoPropietario.getNombre() : null;
-        return estado != null && estado.equalsIgnoreCase("Penalizado");
+        estadoPropietario.validarPuedeRealizarTransito();
     }
 
     public Bonificacion obtenerBonificacionPara(Puesto puesto) {
-        if (estaPenalizado())
+        if (estadoPropietario == null || !estadoPropietario.permiteAplicarBonificaciones()) {
             return null;
+        }
         for (AsignacionBonificacion asig : asignaciones) {
             if (asig.getPuesto().equals(puesto)) {
                 return asig.getBonificacion();
@@ -371,8 +362,9 @@ public final class Propietario extends Observable {
     }
 
     public void registrarNotificacionTransito(Puesto puesto, Vehiculo vehiculo, LocalDate fecha, LocalTime hora) {
-        if (estaPenalizado())
+        if (estadoPropietario == null || !estadoPropietario.registraNotificaciones()) {
             return;
+        }
         String mensaje = String.format("%s %s Pasaste por el puesto %s con el vehículo %s",
                 fecha.toString(), hora.toString(), puesto.getNombre(), vehiculo.getMatricula());
         notificaciones.add(new Notificacion(mensaje, LocalDate.now()));
@@ -380,6 +372,9 @@ public final class Propietario extends Observable {
     }
 
     public void verificarSaldoBajoYNotificar() {
+        if (estadoPropietario == null || !estadoPropietario.registraNotificaciones()) {
+            return;
+        }
         if (saldoActual.compareTo(saldoMinimoAlerta) < 0) {
             String mensaje = String.format("%s Tu saldo actual es de $%s. Te recomendamos hacer una recarga",
                     LocalDate.now().toString(), saldoActual);

@@ -13,7 +13,25 @@ public final class EstadoPropietarioHabilitado extends EstadoPropietario {
 
     @Override
     public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
-        // Aquí delegamos al experto real: Propietario
         propietario.asignarBonificacionInterna(bonificacion, puesto);
+    }
+
+    @Override
+    public void validarPuedeRealizarTransito() throws ObligatorioException {
+    }
+
+    @Override
+    public boolean permiteAplicarBonificaciones() {
+        return true;
+    }
+
+    @Override
+    public boolean registraNotificaciones() {
+        return true;
+    }
+
+    @Override
+    public boolean permiteIngresarAlSistema() {
+        return true;
     }
 }

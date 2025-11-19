@@ -76,17 +76,10 @@ public class SistemaTransito {
 
         Vehiculo vehiculo = buscarVehiculo(matricula);
         Propietario propietario = vehiculo.getPropietario();
-
         propietario.validarPuedeRealizarTransito();
-
         Puesto puesto = buscarPuesto(nombrePuesto);
         Tarifa tarifa = buscarTarifa(puesto, vehiculo.getCategoria());
-
-        // Usa el experto Propietario para obtener la bonificación (ya respeta
-        // "Penalizado")
         Bonificacion bonificacion = propietario.obtenerBonificacionPara(puesto);
-
-        // ⬇⬇⬇ AQUÍ el cambio importante: pasamos TODO el contexto
         BigDecimal montoCobrado = calcularMontoCobrado(
                 tarifa,
                 bonificacion,
@@ -94,21 +87,14 @@ public class SistemaTransito {
                 vehiculo,
                 puesto,
                 fecha);
-
         propietario.cobrarTransito(montoCobrado);
-
         registrarTransitoInterno(vehiculo, puesto, tarifa, fecha, hora, bonificacion, montoCobrado);
-
         propietario.registrarNotificacionTransito(puesto, vehiculo, fecha, hora);
-
         propietario.verificarSaldoBajoYNotificar();
-
         emitirEventosGlobales();
-
         return construirResultado(propietario, vehiculo, tarifa, bonificacion, montoCobrado);
     }
 
-    // -------- Helpers privados (mantienen comportamiento original) --------
     private void validarParametros(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
             throws ObligatorioException {
         if (matricula == null || matricula.isBlank())

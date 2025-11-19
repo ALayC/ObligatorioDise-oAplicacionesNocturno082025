@@ -25,13 +25,13 @@ public final class Tarifa {
     }
     @Override public int hashCode(){return Objects.hash(puesto, categoria);}
     
-    // NUEVO MÉTODO: Obtener tarifa por categoría directamente del puesto
+
     public static Tarifa obtenerTarifaPorCategoria(Puesto puesto, Categoria categoria) {
         for (Tarifa t : puesto.getTarifas()) {
             if (t.getCategoria().equals(categoria)) {
                 return t;
             }
         }
-        return null; // O lanzar una excepción si se prefiere
+        return null; 
     }
 }

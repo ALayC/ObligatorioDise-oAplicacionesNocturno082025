@@ -15,4 +15,23 @@ public final class EstadoPropietarioPenalizado extends EstadoPropietario {
     public void asignarBonificacion(Bonificacion bonificacion, Puesto puesto) throws ObligatorioException {
         propietario.asignarBonificacionInterna(bonificacion, puesto);
     }
+
+    @Override
+    public void validarPuedeRealizarTransito() throws ObligatorioException {
+    }
+
+    @Override
+    public boolean permiteAplicarBonificaciones() {
+        return false;
+    }
+
+    @Override
+    public boolean registraNotificaciones() {
+        return false;
+    }
+
+    @Override
+    public boolean permiteIngresarAlSistema() {
+        return true;
+    }
 }

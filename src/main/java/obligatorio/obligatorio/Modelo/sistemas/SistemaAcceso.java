@@ -8,7 +8,6 @@ import java.util.Set;
 
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.modelos.EstadoPropietario;
-import obligatorio.obligatorio.Modelo.modelos.FabricaEstadoPropietario;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
 import obligatorio.obligatorio.Modelo.modelos.Propietario;
 import obligatorio.obligatorio.Modelo.modelos.Sesion;
@@ -18,7 +17,6 @@ public class SistemaAcceso {
     private final List<Administrador> administradores = new ArrayList<>();
     private final List<Sesion> sesiones = new ArrayList<>();
     private final Set<String> administradoresLogueados = new HashSet<>();
-    // Listas de tránsito y puestos movidas a SistemaTransito.
 
     public void agregarPropietario(Propietario p) throws ObligatorioException {
         if (p == null)
@@ -32,14 +30,11 @@ public class SistemaAcceso {
     }
 
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
-            BigDecimal saldo, BigDecimal saldoMin, String nombreEstado)
+            BigDecimal saldo, BigDecimal saldoMin)
             throws ObligatorioException {
 
-        Propietario p = new Propietario(cedula, pwd, nombreCompleto, saldo, saldoMin, null);
-        EstadoPropietario estado = FabricaEstadoPropietario.crearEstado(nombreEstado, p);
-        p.setEstadoPropietario(estado);
-
-        agregarPropietario(p);
+        Propietario p = new Propietario(cedula, pwd, nombreCompleto, saldo, saldoMin);
+        agregarPropietario(p); 
     }
 
     public void agregarAdministrador(Administrador a) throws ObligatorioException {
@@ -60,9 +55,10 @@ public class SistemaAcceso {
     public Sesion loginPropietario(String cedula, String pwd) throws ObligatorioException {
         for (Propietario p : propietarios) {
             if (p.getCedula().equals(cedula) && p.getPassword().equals(pwd)) {
-                String nombreEstado = p.getEstadoPropietario() != null ? p.getEstadoPropietario().getNombre() : null;
-                if (nombreEstado == null || !nombreEstado.equalsIgnoreCase("Habilitado"))
+                EstadoPropietario estado = p.getEstadoPropietario();
+                if (estado == null || !estado.permiteIngresarAlSistema()) {
                     throw new ObligatorioException("Usuario deshabilitado, no puede ingresar al sistema");
+                }
                 Sesion s = new Sesion(p);
                 sesiones.add(s);
                 return s;
@@ -96,18 +92,7 @@ public class SistemaAcceso {
             administradoresLogueados.remove(cedula);
     }
 
-    /** Exponer propietarios para otros sistemas (p.ej. SistemaTransito). */
     public List<Propietario> getPropietarios() {
         return propietarios;
-    }
-
-    /** Recargar saldo de un propietario (método antes referido por la Fachada). */
-    public void recargarSaldo(Propietario p, BigDecimal monto) throws ObligatorioException {
-        if (p == null)
-            throw new ObligatorioException("Propietario nulo");
-        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0)
-            throw new ObligatorioException("Monto inválido");
-        p.setSaldoActual(p.getSaldoActual().add(monto));
-        // Podría añadirse notificación de recarga aquí si el CU lo requiere.
     }
 }
