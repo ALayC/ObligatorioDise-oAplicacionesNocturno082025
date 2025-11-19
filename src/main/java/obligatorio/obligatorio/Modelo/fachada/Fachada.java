@@ -87,7 +87,7 @@ public class Fachada extends Observable {
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
                                    BigDecimal saldo, BigDecimal saldoMin, String nombreEstado)
             throws ObligatorioException {
-        sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin, nombreEstado);
+        sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin);
     }
 
     public void registrarPropietario(Propietario p) throws ObligatorioException {
