@@ -24,7 +24,7 @@ public final class EstadoPropietarioPenalizado extends EstadoPropietario {
     public boolean permiteAplicarBonificaciones() {
         return false;
     }
-
+    //TODO: en penalizado dice que no registra notificaciones, pero en el punto 5 de caso de uso cambiar estado dice que se regiustra sin importar estado actual o anterior
     @Override
     public boolean registraNotificaciones() {
         return false;

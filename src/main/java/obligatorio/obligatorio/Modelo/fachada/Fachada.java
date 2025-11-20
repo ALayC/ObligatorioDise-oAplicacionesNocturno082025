@@ -6,7 +6,6 @@ import java.time.LocalTime;
 import java.util.List;
 
 import obligatorio.obligatorio.DTO.PuestoDTO;
-import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
@@ -53,7 +52,8 @@ public class Fachada extends Observable {
     }
 
     /**
-     * Registra los datos precargados en los sistemas internos. Llamar tras inicialización.
+     * Registra los datos precargados en los sistemas internos. Llamar tras
+     * inicialización.
      */
     public void registrarDatosPrecargados() throws ObligatorioException {
         // Administradores
@@ -79,13 +79,8 @@ public class Fachada extends Observable {
         return sAcceso.loginAdministrador(cedula, pwd);
     }
 
-
-    public List<Transito> getTransitos() {
-        return sTransito.getTransitos();
-    }
-
     public void agregarPropietario(String cedula, String pwd, String nombreCompleto,
-                                   BigDecimal saldo, BigDecimal saldoMin, String nombreEstado)
+            BigDecimal saldo, BigDecimal saldoMin, String nombreEstado)
             throws ObligatorioException {
         sAcceso.agregarPropietario(cedula, pwd, nombreCompleto, saldo, saldoMin);
     }
@@ -128,7 +123,7 @@ public class Fachada extends Observable {
         return sTransito.getTarifasPorPuesto(nombrePuesto);
     }
 
-    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
+    public Transito emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
             throws ObligatorioException {
         return sTransito.emularTransito(matricula, nombrePuesto, fecha, hora);
     }
@@ -143,25 +138,19 @@ public class Fachada extends Observable {
         return precargaDatos.getEstadosPropietario();
     }
 
+    // Este get transitos es para que el caso de uso del admin pueda obtener los
+    // transitos, no es para el del propietario, por eso no rompe nada
+    public List<Transito> getTransitos() {
+        return sTransito.getTransitos();
+    }
 
-    //TODO: ESTO TIENE LOGICA SE TIENE QUE IR DE ACA
     /** Devuelve el propietario por cédula, o null si no existe. */
-    public obligatorio.obligatorio.Modelo.modelos.Propietario getPropietarioPorCedula(String cedula) {
-        if (cedula == null || cedula.isBlank())
-            return null;
-        for (obligatorio.obligatorio.Modelo.modelos.Propietario p : sAcceso.getPropietarios()) {
-            if (cedula.equals(p.getCedula()))
-                return p;
-        }
-        return null;
+    public Propietario getPropietarioPorCedula(String cedula) {
+        return sAcceso.getPropietarioPorCedula(cedula);
     }
 
     /** Cambia el estado del propietario y registra la notificación. */
     public String cambiarEstadoPropietarioYNotificar(String cedula, String nuevoEstado) {
-        Propietario propietario = getPropietarioPorCedula(cedula);
-        if (propietario == null) {
-            return "No existe el propietario";
-        }
-        return propietario.cambiarEstadoYNotificar(nuevoEstado);
+        return sAcceso.cambiarEstadoPropietarioYNotificar(cedula, nuevoEstado);
     }
 }

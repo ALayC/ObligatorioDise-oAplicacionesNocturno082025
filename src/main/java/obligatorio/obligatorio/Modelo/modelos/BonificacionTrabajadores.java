@@ -18,7 +18,7 @@ public final class BonificacionTrabajadores extends Bonificacion {
                                     Puesto puesto,
                                     LocalDate fecha,
                                     List<Transito> transitosHistoricos) {
-        //TODO: SEGUN EXPEROT RTANSITO ME TIENE QUE DECIR DE QUE DIAS , EJ: FUI REALIZADO UN LUNES                                
+        //TODO: SEGUN EXPEROT trANSITO ME TIENE QUE DECIR DE QUE DIAS , EJ: FUI REALIZADO UN LUNES                                
         DayOfWeek d = fecha.getDayOfWeek();
         boolean esDiaDeSemana = d != DayOfWeek.SATURDAY && d != DayOfWeek.SUNDAY;
 

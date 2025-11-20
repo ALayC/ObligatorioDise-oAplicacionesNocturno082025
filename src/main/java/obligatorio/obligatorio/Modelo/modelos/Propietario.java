@@ -10,14 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import obligatorio.obligatorio.Controladores.Respuesta;
-import obligatorio.obligatorio.DTO.BonificacionAsignadaDTO;
-import obligatorio.obligatorio.DTO.CabeceraPropietarioDTO;
-import obligatorio.obligatorio.DTO.NotificacionDTO;
-import obligatorio.obligatorio.DTO.TransitoDTO;
-import obligatorio.obligatorio.DTO.VehiculoResumenDTO;
 import obligatorio.obligatorio.observador.Observable;
 
 public final class Propietario extends Observable {
@@ -40,7 +33,7 @@ public final class Propietario extends Observable {
     private final Set<AsignacionBonificacion> asignaciones = new HashSet<>();
 
     public Propietario(String cedula, String password, String nombreCompleto,
-            BigDecimal saldoActual, BigDecimal saldoMinimoAlerta) {
+                       BigDecimal saldoActual, BigDecimal saldoMinimoAlerta) {
         this.cedula = Objects.requireNonNull(cedula);
         this.password = Objects.requireNonNull(password);
         this.nombreCompleto = Objects.requireNonNull(nombreCompleto);
@@ -134,8 +127,15 @@ public final class Propietario extends Observable {
         notificaciones.clear();
     }
 
-    // Verifica si el propietario ya tiene una bonificación asignada para el puesto
-    // dado
+    public int borrarNotificacionesPropietario() {
+        int cant = cantidadNotificaciones();
+        if (cant > 0) {
+            limpiarNotificaciones();
+        }
+        return cant;
+    }
+
+    // Verifica si el propietario ya tiene una bonificación asignada para el puesto dado
     public boolean tieneBonificacionParaPuesto(Puesto puesto) {
         for (AsignacionBonificacion asignacion : asignaciones) {
             if (asignacion.getPuesto().equals(puesto)) {
@@ -201,140 +201,61 @@ public final class Propietario extends Observable {
             throw new IllegalStateException("El propietario no tiene un estado asignado.");
         }
 
-        // Si el estado ya es el mismo, devolver mensaje sin cambios
         if (estadoPropietario.getNombre().equalsIgnoreCase(nuevoEstado)) {
             return "El propietario ya está en estado " + estadoPropietario.getNombre();
         }
 
-        // Crear el nuevo estado usando la fábrica (puede lanzar excepción si es
-        // inválido)
         EstadoPropietario nuevo = FabricaEstadoPropietario.crearEstado(nuevoEstado, this);
 
-        // Aplicar el nuevo estado
         this.estadoPropietario = nuevo;
 
-        // Registrar notificación (este CU exige SIEMPRE registrar la notificación)
         notificaciones.add(new Notificacion(
                 "Se ha cambiado tu estado en el sistema. Tu estado actual es " + nuevo.getNombre(),
                 LocalDate.now()));
 
-        // Avisar a los observadores
         avisar(Eventos.CAMBIO_ESTADO);
 
         return "Estado cambiado correctamente";
     }
 
-    // ----------------- Tablero propietario (CU 1) -----------------
+    // ----------------- Lógica de tablero (dominio, sin DTOs) -----------------
 
-
-
-    //TODO: ESTO ESTA MAL, SE ARMA EL DTO EN EL CONTROLLER
-
-    // refactor tablero propietario
-    public List<Respuesta> armarRespuestasTablero(List<Transito> todosLosTransitos) {
-        CabeceraPropietarioDTO cabecera = construirCabecera();
-        List<BonificacionAsignadaDTO> bonis = construirBonificaciones();
-        List<VehiculoResumenDTO> vehs = construirVehiculos(todosLosTransitos);
-        List<TransitoDTO> trans = construirTransitos(todosLosTransitos);
-        List<NotificacionDTO> notifs = construirNotificaciones();
-
-        return Respuesta.lista(
-                new Respuesta("cabecera", cabecera),
-                new Respuesta("bonificaciones", bonis),
-                new Respuesta("vehiculos", vehs),
-                new Respuesta("transitos", trans),
-                new Respuesta("notificaciones", notifs));
-    }
-
-    public int borrarNotificacionesPropietario() {
-        int cant = cantidadNotificaciones();
-        if (cant > 0) {
-            limpiarNotificaciones();
+    /**
+     * Devuelve todos los tránsitos de todos los vehículos del propietario.
+     */
+    public List<Transito> obtenerTransitosPropietario() {
+        List<Transito> resultado = new ArrayList<>();
+        for (Vehiculo v : vehiculos) {
+            resultado.addAll(v.getTransitos());
         }
-        return cant;
+        return resultado;
     }
 
-    private CabeceraPropietarioDTO construirCabecera() {
-        String estado = estadoPropietario != null ? estadoPropietario.getNombre() : "—";
-        return new CabeceraPropietarioDTO(
-                nombreCompleto,
-                estado,
-                saldoActual);
-    }
-
-    private List<BonificacionAsignadaDTO> construirBonificaciones() {
-        return asignaciones.stream()
-                .map(a -> new BonificacionAsignadaDTO(
-                        a.getBonificacion().getNombre(),
-                        a.getPuesto().getNombre(),
-                        a.getFechaAsignacion()))
-                .sorted(Comparator.comparing(b -> b.fechaAsignada))
-                .collect(Collectors.toList());
-    }
-
-    private List<VehiculoResumenDTO> construirVehiculos(List<Transito> todosLosTransitos) {
-        List<Transito> transitosProp = filtrarTransitosDelPropietario(todosLosTransitos);
-
-        return vehiculos.stream()
-                .map(v -> {
-                    List<Transito> transV = transitosProp.stream()
-                            .filter(t -> t.getVehiculo().equals(v))
-                            .toList();
-
-                    int cant = transV.size();
-                    BigDecimal total = transV.stream()
-                            .map(Transito::getMontoCobrado)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                    return new VehiculoResumenDTO(
-                            v.getMatricula(),
-                            v.getModelo(),
-                            v.getColor(),
-                            cant,
-                            total);
-                })
-                .collect(Collectors.toList());
-    }
-
-    private List<TransitoDTO> construirTransitos(List<Transito> todosLosTransitos) {
-        List<Transito> transitosProp = filtrarTransitosDelPropietario(todosLosTransitos);
-
-        return transitosProp.stream()
-                .sorted(Comparator.comparing(Transito::getFecha)
+    /**
+     * Devuelve todos los tránsitos del propietario ordenados por fecha/hora descendente.
+     */
+    public List<Transito> obtenerTransitosOrdenadosPorFechaDesc() {
+        List<Transito> resultado = obtenerTransitosPropietario();
+        resultado.sort(
+                Comparator
+                        .comparing(Transito::getFecha)
                         .thenComparing(Transito::getHora)
-                        .reversed())
-                .map(t -> new TransitoDTO(
-                        t.getPuesto().getNombre(),
-                        t.getVehiculo().getMatricula(),
-                        t.getTarifaAplicada().getCategoria().getNombre(),
-                        t.getMontoBase(),
-                        t.getBonificacionAplicada() != null ? t.getBonificacionAplicada().getNombre() : null,
-                        t.getBonificacionAplicada() != null
-                                ? t.getMontoBase().subtract(t.getMontoCobrado())
-                                : BigDecimal.ZERO,
-                        t.getMontoCobrado(),
-                        t.getFecha(),
-                        t.getHora()))
-                .collect(Collectors.toList());
+                        .reversed()
+        );
+        return resultado;
     }
 
-    private List<NotificacionDTO> construirNotificaciones() {
-        return notificaciones.stream()
-                .map(n -> new NotificacionDTO(
-                        n.getFechaHora(),
-                        n.getMensaje()))
-                .sorted(Comparator.comparing((NotificacionDTO n) -> n.fechaHora).reversed())
-                .collect(Collectors.toList());
-    }
-
-    private List<Transito> filtrarTransitosDelPropietario(List<Transito> todosLosTransitos) {
-        Set<String> matriculasProp = vehiculos.stream()
-                .map(Vehiculo::getMatricula)
-                .collect(Collectors.toSet());
-
-        return todosLosTransitos.stream()
-                .filter(t -> matriculasProp.contains(t.getVehiculo().getMatricula()))
-                .collect(Collectors.toList());
+    /**
+     * Devuelve las notificaciones ordenadas por fecha/hora descendente.
+     */
+    public List<Notificacion> obtenerNotificacionesOrdenadasDesc() {
+        List<Notificacion> copia = new ArrayList<>(notificaciones);
+        copia.sort(
+                Comparator
+                        .comparing(Notificacion::getFechaHora)
+                        .reversed()
+        );
+        return copia;
     }
 
     // ----------------- Lógica de tránsito -----------------

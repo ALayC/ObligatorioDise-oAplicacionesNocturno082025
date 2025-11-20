@@ -34,7 +34,7 @@ public class SistemaAcceso {
             throws ObligatorioException {
 
         Propietario p = new Propietario(cedula, pwd, nombreCompleto, saldo, saldoMin);
-        agregarPropietario(p); 
+        agregarPropietario(p);
     }
 
     public void agregarAdministrador(Administrador a) throws ObligatorioException {
@@ -95,4 +95,26 @@ public class SistemaAcceso {
     public List<Propietario> getPropietarios() {
         return propietarios;
     }
+
+    // dentro de SistemaAcceso
+    public Propietario getPropietarioPorCedula(String cedula) {
+        if (cedula == null || cedula.isBlank()) {
+            return null;
+        }
+        for (Propietario p : getPropietarios()) { // este método ya existe
+            if (cedula.equals(p.getCedula())) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    public String cambiarEstadoPropietarioYNotificar(String cedula, String nuevoEstado) {
+        Propietario propietario = getPropietarioPorCedula(cedula);
+        if (propietario == null) {
+            return "No existe el propietario";
+        }
+        return propietario.cambiarEstadoYNotificar(nuevoEstado);
+    }
+
 }

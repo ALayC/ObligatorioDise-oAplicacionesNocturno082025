@@ -1,12 +1,12 @@
-
 package obligatorio.obligatorio.Controladores;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import org.springframework.http.MediaType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +23,8 @@ import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.Administrador;
 import obligatorio.obligatorio.Modelo.modelos.ConexionNavegador;
 import obligatorio.obligatorio.Modelo.modelos.ObligatorioException;
+import obligatorio.obligatorio.Modelo.modelos.Propietario;
+import obligatorio.obligatorio.Modelo.modelos.Transito;
 import obligatorio.obligatorio.observador.Observable;
 import obligatorio.obligatorio.observador.Observador;
 
@@ -93,9 +95,21 @@ public class ControladorAdmin implements Observador {
             LocalDate fecha = LocalDate.parse(fechaStr, DateTimeFormatter.ISO_LOCAL_DATE);
             java.time.LocalTime hora = java.time.LocalTime.parse(horaStr, DateTimeFormatter.ISO_LOCAL_TIME);
 
-            // Emular tránsito
-            ResultadoEmulacionDTO resultado = Fachada.getInstancia()
+            // Emular tránsito en el dominio
+            Transito t = Fachada.getInstancia()
                     .emularTransito(matricula, nombrePuesto, fecha, hora);
+
+            // Armar DTO en el controlador (no en el dominio)
+            Propietario propietario = t.getVehiculo().getPropietario();
+
+            ResultadoEmulacionDTO resultado = new ResultadoEmulacionDTO();
+            resultado.setNombrePropietario(propietario.getNombreCompleto());
+            resultado.setEstado(propietario.getEstadoPropietario().getNombre());
+            resultado.setCategoria(t.getVehiculo().getCategoria().getNombre());
+            resultado.setBonificacion(
+                    t.getBonificacionAplicada() != null ? t.getBonificacionAplicada().getNombre() : null);
+            resultado.setCostoTransito(t.getMontoCobrado());
+            resultado.setSaldoDespues(propietario.getSaldoActual());
 
             return Respuesta.lista(
                     new Respuesta("resultadoEmulacion", resultado));
@@ -128,14 +142,17 @@ public class ControladorAdmin implements Observador {
                     conexionNavegador.enviarJSON(Fachada.getInstancia().getSesiones());
                 }
             }
-            case notificacionesActualizadas -> {
+            // case notificacionesActualizadas -> {
 
-                if (conexionNavegador.getConexionSSE() != null) {
-                    // Aquí podrías enviar notificaciones si tienes un método para obtenerlas
-                    // conexionNavegador.enviarJSON(Fachada.getInstancia().getNotificacionesGlobales());
-                }
-            }
+            //     if (conexionNavegador.getConexionSSE() != null) {
+            //         // Aquí podrías enviar notificaciones si tienes un método para obtenerlas
+            //         // conexionNavegador.enviarJSON(Fachada.getInstancia().getNotificacionesGlobales());
+            //     }
+            // }
+            // case cambioListaSesiones -> {
+            //     // Si querés manejarlo, podés reutilizar la lógica de sesiones acá
+            //     // De momento lo dejamos vacío para no inventar comportamiento.
+            // }
         }
     }
-
 }

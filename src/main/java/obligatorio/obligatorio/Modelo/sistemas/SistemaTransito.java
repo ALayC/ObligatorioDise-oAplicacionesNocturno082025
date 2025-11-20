@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import obligatorio.obligatorio.DTO.PuestoDTO;
-import obligatorio.obligatorio.DTO.ResultadoEmulacionDTO;
 import obligatorio.obligatorio.DTO.TarifaDTO;
 import obligatorio.obligatorio.Modelo.fachada.Fachada;
 import obligatorio.obligatorio.Modelo.modelos.Bonificacion;
@@ -22,7 +21,7 @@ import obligatorio.obligatorio.Modelo.modelos.Vehiculo;
 
 public class SistemaTransito {
 
-    private final SistemaAcceso sistemaAcceso; 
+    private final SistemaAcceso sistemaAcceso;
     private final List<Transito> transitos = new ArrayList<>();
     private final List<Puesto> puestos = new ArrayList<>();
 
@@ -61,16 +60,18 @@ public class SistemaTransito {
 
     // --- Gestión de tránsitos ---
     public void registrarTransito(Transito t) {
-        if (t != null)
+        if (t != null) {
             transitos.add(t);
+            // Mantener el dominio sincronizado: el vehículo conoce sus tránsitos
+            t.getVehiculo().registrarTransito(t);
+        }
     }
 
     public List<Transito> getTransitos() {
         return transitos;
     }
-    //TODO: LOS DTOS VAN PARA EL CONTROALER. TENER CUIDADO, TRANSITSOS DSON DE PROPIETARIO
-    /** Caso de uso: Emular tránsito (orquestador). */
-    public ResultadoEmulacionDTO emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
+
+    public Transito emularTransito(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
             throws ObligatorioException {
         validarParametros(matricula, nombrePuesto, fecha, hora);
 
@@ -88,11 +89,11 @@ public class SistemaTransito {
                 puesto,
                 fecha);
         propietario.cobrarTransito(montoCobrado);
-        registrarTransitoInterno(vehiculo, puesto, tarifa, fecha, hora, bonificacion, montoCobrado);
+        Transito t = registrarTransitoInterno(vehiculo, puesto, tarifa, fecha, hora, bonificacion, montoCobrado);
         propietario.registrarNotificacionTransito(puesto, vehiculo, fecha, hora);
         propietario.verificarSaldoBajoYNotificar();
         emitirEventosGlobales();
-        return construirResultado(propietario, vehiculo, tarifa, bonificacion, montoCobrado);
+        return t;
     }
 
     private void validarParametros(String matricula, String nombrePuesto, LocalDate fecha, LocalTime hora)
@@ -134,11 +135,11 @@ public class SistemaTransito {
     }
 
     private BigDecimal calcularMontoCobrado(Tarifa tarifa,
-            Bonificacion bonificacion,
-            Propietario propietario,
-            Vehiculo vehiculo,
-            Puesto puesto,
-            LocalDate fecha) {
+                                            Bonificacion bonificacion,
+                                            Propietario propietario,
+                                            Vehiculo vehiculo,
+                                            Puesto puesto,
+                                            LocalDate fecha) {
 
         BigDecimal base = tarifa.getMonto();
 
@@ -154,9 +155,9 @@ public class SistemaTransito {
                 transitos);
     }
 
-    private void registrarTransitoInterno(Vehiculo vehiculo, Puesto puesto, Tarifa tarifa, LocalDate fecha,
-            LocalTime hora,
-            Bonificacion bonificacion, BigDecimal montoCobrado) {
+    private Transito registrarTransitoInterno(Vehiculo vehiculo, Puesto puesto, Tarifa tarifa, LocalDate fecha,
+                                              LocalTime hora,
+                                              Bonificacion bonificacion, BigDecimal montoCobrado) {
         Transito t = new Transito(
                 vehiculo,
                 puesto,
@@ -167,24 +168,13 @@ public class SistemaTransito {
                 montoCobrado,
                 bonificacion,
                 true);
-        transitos.add(t);
+        registrarTransito(t);
+        return t;
     }
 
     private void emitirEventosGlobales() {
         Fachada.getInstancia().avisar(Fachada.Eventos.transitoRegistrado);
         Fachada.getInstancia().avisar(Fachada.Eventos.saldoActualizado);
         Fachada.getInstancia().avisar(Fachada.Eventos.notificacionesActualizadas);
-    }
-
-    private ResultadoEmulacionDTO construirResultado(Propietario propietario, Vehiculo vehiculo, Tarifa unused,
-            Bonificacion bonificacion, BigDecimal montoCobrado) {
-        ResultadoEmulacionDTO dto = new ResultadoEmulacionDTO();
-        dto.setNombrePropietario(propietario.getNombreCompleto());
-        dto.setEstado(propietario.getEstadoPropietario().getNombre());
-        dto.setCategoria(vehiculo.getCategoria().getNombre());
-        dto.setBonificacion(bonificacion != null ? bonificacion.getNombre() : null);
-        dto.setCostoTransito(montoCobrado);
-        dto.setSaldoDespues(propietario.getSaldoActual());
-        return dto;
     }
 }
