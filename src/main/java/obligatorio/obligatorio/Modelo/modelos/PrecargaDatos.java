@@ -76,16 +76,16 @@ public final class PrecargaDatos {
 
         private void cargar() throws ObligatorioException {
                 // ----- Administradores -----
-                Administrador admin1 = new Administrador("a", "a", "Usuario Administrador");
+                Administrador admin1 = new Administrador("12345678", "admin.123", "Usuario Administrador");
                 Administrador admin2 = new Administrador("87654321", "root.123", "Admin Secundario");
                 administradores.add(admin1);
                 administradores.add(admin2);
 
                 // ----- Propietarios -----
-                Propietario prop1 = new Propietario("1", "1", "Walter",
+                Propietario prop1 = new Propietario("23456789", "prop.123", "Usuario Propietario",
                                 new BigDecimal("2000.00"), new BigDecimal("500.00"));
 
-                Propietario prop2 = new Propietario("2", "2", "josé",
+                Propietario prop2 = new Propietario("2", "2", "Prop Secundario",
                                 new BigDecimal("800.00"), new BigDecimal("200.00"));
 
                 propietarios.add(prop1);
